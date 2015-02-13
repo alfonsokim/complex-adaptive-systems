@@ -4,6 +4,8 @@ patches-own [ vacant ]  ;; Los patches estan vacantes o no
 
 breed [ niggas ]
 breed [ crackers ]
+
+globals [ happiness ]
 ;; ----------------------------------------------------------------
 
 ;; ================================================================
@@ -18,6 +20,7 @@ to setap
   ]
   create-niggas num-niggas
   create-crackers num-crackers
+  set happiness num-niggas + num-crackers
   ask niggas [ init-dawg self black ]
   ask crackers [ init-dawg self white ]
 end
@@ -71,6 +74,7 @@ to check-neighborhood [ dawg ]
   if ( other-breed-count = 0 and my-breed-count = 0 ) [ move dawg ] ;; evitar islas
 end
 ;; ----------------------------------------------------------------
+
 
 ;; ================================================================
 ;; Funcion principal: revisa el vencindario de todos los agentes
@@ -141,38 +145,68 @@ NIL
 NIL
 1
 
-INPUTBOX
-14
-112
-169
-172
+SLIDER
+15
+110
+187
+143
 num-niggas
-400
-1
+num-niggas
 0
-Number
+450
+450
+10
+1
+NIL
+HORIZONTAL
 
-INPUTBOX
+SLIDER
 16
+161
 188
-171
-248
+194
 num-crackers
-400
-1
+num-crackers
 0
-Number
+450
+380
+10
+1
+NIL
+HORIZONTAL
 
-INPUTBOX
-9
-262
-164
-322
+SLIDER
+15
+209
+187
+242
 racist
-3
-1
+racist
 0
-Number
+5
+2.4
+0.2
+1
+NIL
+HORIZONTAL
+
+PLOT
+14
+257
+214
+407
+happiness
+ticks
+dawgs
+0.0
+100.0
+0.0
+900.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot happiness niggas"
 
 @#$#@#$#@
 ## WHAT IS IT?
