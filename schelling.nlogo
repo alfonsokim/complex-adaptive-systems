@@ -1,11 +1,18 @@
 
 ;; ================================================================
-patches-own [ vacant ]  ;; Los patches estan vacantes o no
+globals [ happiness ;; nivel de felicidad en el sistema 
+          potential ;; numero de agentes que se moverian si hay un cambio
+          num-moves ;; numero de movimientos
+        ]
+
+patches-own [ vacant? ]  ;; Los patches estan vacantes o no
+
+turtles-own [ happy?     ;; El agente es feliz? 
+              will-move? ;; El agente se mueve con tolerant de la otra raza
+            ]
 
 breed [ niggas ]
 breed [ crackers ]
-
-globals [ happiness ]
 ;; ----------------------------------------------------------------
 
 ;; ================================================================
@@ -16,13 +23,14 @@ to setap
   clear-all
   ask patches [
     set pcolor green 
-    set vacant 1
+    set vacant? true
   ]
-  create-niggas num-niggas
-  create-crackers num-crackers
+  create-niggas num-niggas [ init-dawg self black ]
+  create-crackers num-crackers [ init-dawg self white ]
   set happiness num-niggas + num-crackers
-  ask niggas [ init-dawg self black ]
-  ask crackers [ init-dawg self white ]
+  set potential num-niggas + num-crackers
+  set num-moves 0
+  reset-ticks
 end
 ;; ----------------------------------------------------------------
 
@@ -31,6 +39,7 @@ end
 ;; param one-color: el color del agente
 ;; ----------------------------------------------------------------
 to init-dawg [ dawg one-color ]
+  set happy? false
   set shape "person"
   set size 1
   set color one-color
@@ -43,21 +52,13 @@ end
 ;; actual como vacia
 ;; ----------------------------------------------------------------
 to move [ dawg ]
-  let empty-patch one-of patches with [ vacant = 1 ] ;; busca una posicion vacia
-  ask patch-here [ set vacant 1 ]   ;; primero se marca el patch como vacio
+  set num-moves num-moves + 1
+  let empty-patch one-of patches with [ vacant? ] ;; busca una posicion vacia
+  ask patch-here [ set vacant? true ]   ;; primero se marca el patch como vacio
   move-to empty-patch               ;; antes de moverlo
-  ask empty-patch [ set vacant 0 ]  ;; ya movido el patch actual esta ocupado
+  ask empty-patch [ set vacant? false ]  ;; ya movido el patch actual esta ocupado
 end
 
-;; ================================================================
-;; NO USADO. Calcula el numero de agentes de cierta especie
-;; que se encuentra en el vecindario
-;; ----------------------------------------------------------------
-;; to-report breed-count [ a-breed ]
-;;   let one-breed-count count ( turtles-on neighbors ) with [ breed = a-breed ]
-;;   report one-breed-count
-;; end
-;; ----------------------------------------------------------------
 
 ;; ================================================================
 ;; Revisa el vecindario y calcula el numero de agentes de
@@ -70,17 +71,42 @@ end
 to check-neighborhood [ dawg ]
   let my-breed-count count ( turtles-on neighbors ) with [ breed = [ breed ] of dawg ]
   let other-breed-count count ( turtles-on neighbors ) with [ breed != [ breed ] of dawg ]
-  if ( other-breed-count * racist > my-breed-count ) [ move dawg ]
-  if ( other-breed-count = 0 and my-breed-count = 0 ) [ move dawg ] ;; evitar islas
+  set happy? other-breed-count * racist <= my-breed-count
+  if ( not happy? or ( other-breed-count = 0 and my-breed-count = 0 ) ) [ move dawg ]
 end
 ;; ----------------------------------------------------------------
+
+
+to get-potential
+  set potential 0
+  ask turtles [
+    let my-breed-count count ( turtles-on neighbors ) with [ breed = [ breed ] of myself ]
+    let other-breed-count count ( turtles-on neighbors ) with [ breed != [ breed ] of myself ]
+    set will-move? ( other-breed-count * racist) > my-breed-count - tolerant
+  ]
+  ask turtles with [ will-move? ] [
+    set potential potential + 1
+    set color red
+  ]
+end
+
+
+to tip
+  ask one-of turtles [ move self ]
+  set num-moves 0
+end
 
 
 ;; ================================================================
 ;; Funcion principal: revisa el vencindario de todos los agentes
 ;; ----------------------------------------------------------------
 to apartheid
+  ask niggas with [ color = red ] [ set color black ]
+  ask crackers with [ color = red ] [ set color white ]
   ask turtles [ check-neighborhood self ]
+  set happiness count turtles with [ not happy? ]
+  if all? turtles [ happy? ] [ stop ]
+  tick
 end
 ;; ----------------------------------------------------------------
 @#$#@#$#@
@@ -105,8 +131,8 @@ GRAPHICS-WINDOW
 15
 -15
 15
-0
-0
+1
+1
 1
 ticks
 30.0
@@ -129,9 +155,9 @@ NIL
 1
 
 BUTTON
-28
+19
 66
-113
+104
 99
 NIL
 apartheid
@@ -169,7 +195,7 @@ num-crackers
 num-crackers
 0
 450
-380
+450
 10
 1
 NIL
@@ -184,18 +210,18 @@ racist
 racist
 0
 5
-2.4
+1.2
 0.2
 1
 NIL
 HORIZONTAL
 
 PLOT
-14
-257
-214
-407
-happiness
+633
+12
+833
+162
+racial tension
 ticks
 dawgs
 0.0
@@ -206,7 +232,78 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot happiness niggas"
+"default" 1.0 0 -2674135 true "" "plot happiness"
+
+SLIDER
+16
+256
+188
+289
+tolerant
+tolerant
+0
+8
+3
+1
+1
+NIL
+HORIZONTAL
+
+MONITOR
+636
+184
+698
+229
+NIL
+potential
+0
+1
+11
+
+BUTTON
+17
+301
+120
+334
+NIL
+get-potential
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+124
+67
+187
+100
+NIL
+tip
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+MONITOR
+708
+184
+785
+229
+NIL
+num-moves
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -551,7 +648,7 @@ Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 
 @#$#@#$#@
-NetLogo 5.1.0
+NetLogo 5.0.5
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
