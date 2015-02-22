@@ -1,138 +1,51 @@
 
-;; ================================================================
-globals [ happiness ;; nivel de felicidad en el sistema 
-          potential ;; numero de agentes que se moverian si hay un cambio
-          num-moves ;; numero de movimientos
-        ]
+turtles-own [ level ]
 
-patches-own [ vacant? ]  ;; Los patches estan vacantes o no
-
-turtles-own [ happy?     ;; El agente es feliz? 
-              will-move? ;; El agente se mueve con tolerant de la otra raza
-            ]
-
-breed [ niggas ]
-breed [ crackers ]
-;; ----------------------------------------------------------------
-
-;; ================================================================
-;; inicializa el entorno, el numero de agentes y el nivel de
-;; de racismo de cada agente
-;; ----------------------------------------------------------------
 to setap
   clear-all
   ask patches [
-    set pcolor green 
-    set vacant? true
+    set pcolor black 
   ]
-  create-niggas num-niggas [ init-dawg self black ]
-  create-crackers num-crackers [ init-dawg self white ]
-  set happiness num-niggas + num-crackers
-  set potential num-niggas + num-crackers
-  set num-moves 0
+  create-turtles 500 [
+    set shape "bug"
+    set size 1
+    set color gray
+    setxy random-pxcor random-pycor
+    set threshold 10
+    set level random threshold
+  ]
   reset-ticks
 end
-;; ----------------------------------------------------------------
-
-;; ================================================================
-;; inicializa cada agente con su color
-;; param one-color: el color del agente
-;; ----------------------------------------------------------------
-to init-dawg [ dawg one-color ]
-  set happy? false
-  set shape "person"
-  set size 1
-  set color one-color
-  move dawg
-end
-;; ----------------------------------------------------------------
-
-;; ================================================================
-;; Mueve un agente a una posicion vacia y marca la posicion
-;; actual como vacia
-;; ----------------------------------------------------------------
-to move [ dawg ]
-  set num-moves num-moves + 1
-  let empty-patch one-of patches with [ vacant? ] ;; busca una posicion vacia
-  ask patch-here [ set vacant? true ]   ;; primero se marca el patch como vacio
-  move-to empty-patch               ;; antes de moverlo
-  ask empty-patch [ set vacant? false ]  ;; ya movido el patch actual esta ocupado
-end
 
 
-;; ================================================================
-;; Revisa el vecindario y calcula el numero de agentes de
-;; su propia especia y el de otras especies, si el numero 
-;; de especies diferentes es mayor al de otras especies 
-;; multiplicado por cierto grado de racismo, el agente se mueve.
-;; Ademas, para evitar islas, si el agente esta solo en su
-;; vecindario tambien se mueve a una posicion vacia
-;; ----------------------------------------------------------------
-to check-neighborhood [ dawg ]
-  let my-breed-count count ( turtles-on neighbors ) with [ breed = [ breed ] of dawg ]
-  let other-breed-count count ( turtles-on neighbors ) with [ breed != [ breed ] of dawg ]
-  set happy? other-breed-count * racist <= my-breed-count
-  if ( not happy? or ( other-breed-count = 0 and my-breed-count = 0 ) ) [ move dawg ]
-end
-;; ----------------------------------------------------------------
-
-
-to get-potential
-  set potential 0
-  ask turtles [
-    let my-breed-count count ( turtles-on neighbors ) with [ breed = [ breed ] of myself ]
-    let other-breed-count count ( turtles-on neighbors ) with [ breed != [ breed ] of myself ]
-    set will-move? ( other-breed-count * racist) > my-breed-count - tolerant
+to go
+  ask turtles [ 
+    set level level + 1
+    if count turtles in-radius 1 with [ color = white ] >= 1 [ 
+      set level 0
+    ]
+    if random-float 1 < 0.5 [ 
+          lt random 45
+          rt random 45
+      ]
+    fd 1
   ]
-  ask turtles with [ will-move? ] [
-    set potential potential + 1
-    set color red
+  ask turtles with [ level >= threshold ] [
+    set color white
   ]
-end
-
-
-to tip
-  ask one-of turtles [ move self ]
-  set num-moves 0
-  clear-plot
-end
-
-
-to experiment
-  file-open "mudanzas.txt"
-  let i 0
-  while [ i < num-experiments ] [
-    tip
-    apartheid
-    file-print num-moves
-    tick
-    set i i + 1
+  ask turtles with [ level < threshold ] [
+    set color gray
   ]
-  file-close-all
-  stop
-end
-
-
-;; ================================================================
-;; Funcion principal: revisa el vencindario de todos los agentes
-;; ----------------------------------------------------------------
-to apartheid
-  ask niggas with [ color = red ] [ set color black ]
-  ask crackers with [ color = red ] [ set color white ]
-  ask turtles [ check-neighborhood self ]
-  set happiness count turtles with [ not happy? ]
-  if all? turtles [ happy? ] [ stop ]
   tick
 end
-;; ----------------------------------------------------------------
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
-10
-623
-444
-15
-15
+136
+18
+575
+478
+16
+16
 13.0
 1
 10
@@ -143,10 +56,10 @@ GRAPHICS-WINDOW
 1
 1
 1
--15
-15
--15
-15
+-16
+16
+-16
+16
 1
 1
 1
@@ -154,10 +67,10 @@ ticks
 30.0
 
 BUTTON
-19
-22
-82
-55
+14
+38
+77
+71
 NIL
 setap
 NIL
@@ -171,12 +84,12 @@ NIL
 1
 
 BUTTON
-19
-66
-104
-99
+15
+76
+78
+109
 NIL
-apartheid
+go
 T
 1
 T
@@ -187,167 +100,34 @@ NIL
 NIL
 1
 
-SLIDER
-15
-110
-187
-143
-num-niggas
-num-niggas
-0
-450
-450
-10
-1
-NIL
-HORIZONTAL
-
-SLIDER
-16
-161
-188
-194
-num-crackers
-num-crackers
-0
-450
-450
-10
-1
-NIL
-HORIZONTAL
-
-SLIDER
-15
-209
-187
-242
-racist
-racist
-0
-5
-2
-0.2
-1
-NIL
-HORIZONTAL
-
 PLOT
-633
-12
-833
-162
-racial tension
+609
+13
+960
+289
+prendidas
 ticks
-dawgs
+abejitas
 0.0
 100.0
 0.0
-900.0
+500.0
 true
 false
 "" ""
 PENS
-"default" 1.0 0 -2674135 true "" "plot happiness"
-
-SLIDER
-16
-256
-188
-289
-tolerant
-tolerant
-0
-8
-3
-1
-1
-NIL
-HORIZONTAL
-
-MONITOR
-636
-184
-698
-229
-NIL
-potential
-0
-1
-11
-
-BUTTON
-17
-301
-120
-334
-NIL
-get-potential
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-124
-67
-187
-100
-NIL
-tip
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-MONITOR
-708
-184
-785
-229
-NIL
-num-moves
-17
-1
-11
+"default" 1.0 0 -2674135 true "" "plot count turtles with [ color = white ]"
 
 INPUTBOX
-17
-345
+18
+119
 118
-405
-num-experiments
-100
+179
+threshold
+10
 1
 0
 Number
-
-BUTTON
-16
-412
-116
-445
-NIL
-experiment
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
 
 @#$#@#$#@
 ## WHAT IS IT?
