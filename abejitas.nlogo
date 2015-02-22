@@ -21,7 +21,7 @@ end
 to go
   ask turtles [ 
     set level level + 1
-    if count turtles in-radius 1 with [ color = white ] >= 1 [ 
+    if count turtles in-radius 1 with [ color = yellow ] >= 1 [ 
       set level 0
     ]
     if random-float 1 < 0.5 [ 
@@ -31,7 +31,7 @@ to go
     fd 1
   ]
   ask turtles with [ level >= threshold ] [
-    set color white
+    set color yellow
   ]
   ask turtles with [ level < threshold ] [
     set color gray
@@ -116,7 +116,7 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -2674135 true "" "plot count turtles with [ color = white ]"
+"default" 1.0 0 -2674135 true "" "plot count turtles with [ color = yellow ]"
 
 INPUTBOX
 18
@@ -472,7 +472,7 @@ Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 
 @#$#@#$#@
-NetLogo 5.0.5
+NetLogo 5.1.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
