@@ -77,6 +77,10 @@ end
 ;; ----------------------------------------------------------------
 
 
+;; ================================================================
+;; Obtiene la energia potencial del sistema, es decir los
+;; agentes que estan dispuestos a mover con un cambio minimo
+;; ----------------------------------------------------------------
 to get-potential
   set potential 0
   ask turtles [
@@ -89,15 +93,26 @@ to get-potential
     set color red
   ]
 end
+;; ----------------------------------------------------------------
 
 
+;; ================================================================
+;; cambia de posicion un agente aleatorio y reseta los contadores
+;; ----------------------------------------------------------------
 to tip
   ask one-of turtles [ move self ]
   set num-moves 0
   clear-plot
 end
+;; ----------------------------------------------------------------
 
 
+;; ================================================================
+;; Escribe el un archivo de texto el numero de mudanzas por
+;; agentes que se mueven.
+;; TODO: Iterar en este experimento y llevar una cuenta de 
+;; cuantos movimientos de 1 agente desencadenan N movimientos
+;; ----------------------------------------------------------------
 to experiment
   file-open "mudanzas.txt"
   let i 0
@@ -111,6 +126,7 @@ to experiment
   file-close-all
   stop
 end
+;; ----------------------------------------------------------------
 
 
 ;; ================================================================
@@ -692,7 +708,7 @@ Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 
 @#$#@#$#@
-NetLogo 5.0.5
+NetLogo 5.1.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

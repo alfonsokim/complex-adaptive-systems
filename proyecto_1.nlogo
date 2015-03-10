@@ -1,67 +1,53 @@
-;; ==================================================
-;; Modelo de sincronizacion de agentes, simula
-;; el ciclo de las luciernagas que se sincronizan
-;; ==================================================
 
-turtles-own [ level ] ;; El nivel o ciclo en el que se encuentran las luciernagas
+patches-own [ vacant? ] 
 
-
-;; ==================================================
-;; Inicaliza el sistema con 500 luciernagas
-;; y su nivel aleatorio
-;; --------------------------------------------------
 to setap
   clear-all
-  ask patches [
-    set pcolor black 
-  ]
-  create-turtles 500 [
-    set shape "bug"
-    set size 1
-    set color gray
-    setxy random-pxcor random-pycor
-    set threshold 10
-    set level random threshold
-  ]
+  ask patches [ set vacant? true ]
+  create-turtles num-persons [ init-person self ]
   reset-ticks
 end
-;; --------------------------------------------------
 
+to init-person [ joe ]
+  set shape "person"
+  set size 1
+  ifelse random-float 1 < satisfaction [ set color blue ] [ set color red ]
+  move-person joe
+end
 
-;; ==================================================
-;; Sincronizacion de las luciernagas
-;; --------------------------------------------------
-to go
-  ask turtles [ 
-    set level level + 1
-    if count turtles in-radius 1 with [ color = yellow ] >= 1 [ 
-      set level 0  ;; Cuando las vecinas estan prendidas se reinicia
-                   ;; el cliclo, para que en el siguiente tick esten sincronizadas
-    ]
-    if random-float 1 < 0.5 [ 
-          lt random 45
-          rt random 45
-      ]
-    fd 1
+to move-person [ joe ]
+  let empty-patch one-of patches with [ vacant? ] ;; busca una posicion vacia
+  ask patch-here [ set vacant? true ] ;; primero se marca el patch como vacio
+  move-to empty-patch                 ;; antes de moverlo
+  ask empty-patch [ set vacant? false ] ;; ya movido el patch actual esta ocupado
+end
+
+to check-neighbors [ joe other-color ]
+  let my-color-count count ( turtles-on neighbors ) with [ color = other-color ]
+  let other-color-count count ( turtles-on neighbors ) with [ color != other-color ]
+  if other-color-count > my-color-count [
+    set color other-color
   ]
-  ask turtles with [ level >= threshold ] [
-    set color yellow
-  ]
-  ask turtles with [ level < threshold ] [
-    set color gray
+end
+
+to ovation
+  ask turtles with [ color = red ] [
+    set shape "dot"
+    ;; check-neighbors self blue
   ]
   tick
 end
-;; --------------------------------------------------
+
+
 @#$#@#$#@
 GRAPHICS-WINDOW
-136
-18
-575
-478
-16
-16
-13.0
+354
+10
+869
+546
+15
+15
+16.333333333333332
 1
 10
 1
@@ -71,21 +57,21 @@ GRAPHICS-WINDOW
 1
 1
 1
--16
-16
--16
-16
-1
-1
+-15
+15
+-15
+15
+0
+0
 1
 ticks
 30.0
 
 BUTTON
-14
-38
-77
-71
+28
+36
+91
+69
 NIL
 setap
 NIL
@@ -98,14 +84,44 @@ NIL
 NIL
 1
 
-BUTTON
-15
-76
-78
-109
+SLIDER
+32
+82
+204
+115
+num-persons
+num-persons
+0
+900
+900
+1
+1
 NIL
-go
-T
+HORIZONTAL
+
+SLIDER
+37
+129
+209
+162
+satisfaction
+satisfaction
+0
+1
+0.3
+0.1
+1
+NIL
+HORIZONTAL
+
+BUTTON
+36
+179
+109
+212
+NIL
+ovation
+NIL
 1
 T
 OBSERVER
@@ -114,35 +130,6 @@ NIL
 NIL
 NIL
 1
-
-PLOT
-609
-13
-960
-289
-prendidas
-ticks
-abejitas
-0.0
-100.0
-0.0
-500.0
-true
-false
-"" ""
-PENS
-"default" 1.0 0 -2674135 true "" "plot count turtles with [ color = yellow ]"
-
-INPUTBOX
-18
-119
-118
-179
-threshold
-10
-1
-0
-Number
 
 @#$#@#$#@
 ## WHAT IS IT?
