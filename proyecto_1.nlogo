@@ -2,7 +2,7 @@
 globals [
   num-standing
   num-sitting
-  num-changes
+  num-moves
 ]
 
 patches-own [ vacant? ] 
@@ -47,41 +47,33 @@ to ovation
   ask turtles [
     let local-standing 0
     let local-sitting 0
-    ask turtles at-points neighbors-offsets ticks [
+    let sight 1
+    set num-moves 0
+    if perception = "time" [ set sight ticks ]
+    ask turtles at-points neighbors-offsets sight [
       ifelse [ standing? ] of self 
         [ set local-standing local-standing + 1 ] 
         [ set local-sitting local-sitting + 1 ]
     ]
+    set num-sitting local-sitting
+    set num-standing local-standing
     ifelse [ standing? ] of self [
       if local-sitting > local-standing [
         set standing? false
         set color orange
+        set num-moves num-moves + 1
       ]
-    ] [
+    ] [ ;; else
       if local-standing > local-sitting [
         set standing? true
         set color green
+        set num-moves num-moves + 1
       ]
     ]
   ]
+  ;; if num-moves = 0 [ stop ]
 end
 
-
-to ovation1
-  ask turtles with [ not standing? ] [
-    let local-standing 0
-    let local-sitting 0
-    ask turtles at-points neighbors-offsets 1 [
-      ifelse [ standing? ] of self 
-        [ set local-standing local-standing + 1 ] 
-        [ set local-sitting local-sitting + 1 ]
-    ]
-    if local-standing > local-sitting [
-      set standing? true
-      set color green
-    ]
-  ]
-end
 
 to-report neighbors-offsets [ n ]
   ;; La siguiente linea es para el vecindario de von-neumann
@@ -94,9 +86,9 @@ to-report neighbors-offsets [ n ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-354
+237
 10
-870
+753
 547
 15
 -1
@@ -114,8 +106,8 @@ GRAPHICS-WINDOW
 15
 -30
 0
-0
-0
+1
+1
 1
 ticks
 30.0
@@ -161,7 +153,7 @@ satisfaction
 satisfaction
 0
 1
-0.5
+0.46
 0.02
 1
 NIL
@@ -174,7 +166,7 @@ BUTTON
 69
 NIL
 ovation
-NIL
+T
 1
 T
 OBSERVER
@@ -215,6 +207,24 @@ perception
 perception
 "local" "time"
 0
+
+PLOT
+827
+148
+1027
+298
+ovacion
+ticks
+personas
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"unhappy" 1.0 0 -2674135 true "" "plot count turtles with [ color red ]"
 
 @#$#@#$#@
 ## WHAT IS IT?
