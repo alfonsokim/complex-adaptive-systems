@@ -1,17 +1,27 @@
 
+globals [
+  num-standing
+  num-sitting
+  num-changes
+  num-ticks
+]
+
 patches-own [ vacant? ] 
 
 to setap
   clear-all
+  reset-ticks
+  set num-ticks 0
   ask patches [ set vacant? true ]
   create-turtles num-persons [ init-person self ]
-  reset-ticks
 end
 
 to init-person [ joe ]
   set shape "person"
   set size 1
-  ifelse random-float 1 < satisfaction [ set color blue ] [ set color red ]
+  ifelse random-float 1 < 0.995 ;; satisfaction 
+    [ set color blue set num-standing num-standing + 1 ] 
+    [ set color red set num-sitting num-sitting + 1 ]
   move-person joe
 end
 
@@ -23,30 +33,52 @@ to move-person [ joe ]
 end
 
 to check-neighbors [ joe other-color ]
-  let my-color-count count ( turtles-on neighbors ) with [ color = other-color ]
-  let other-color-count count ( turtles-on neighbors ) with [ color != other-color ]
-  if other-color-count > my-color-count [
+  let my-color-count count ( turtles in-radius num-ticks ) with [ color = other-color ]
+  let other-color-count count ( turtles in-radius num-ticks ) with [ color != other-color ]
+  ifelse other-color-count > my-color-count [
+    set num-standing num-standing + 1
+    set num-changes num-changes + 1
+    set num-sitting num-sitting - 1
     set color other-color
   ]
+  [  ]
+end
+
+to check-from-view [ joe ]
+  
 end
 
 to ovation
+  set num-changes 0
+  set num-ticks num-ticks + 1
   ask turtles with [ color = red ] [
     set shape "dot"
-    ;; check-neighbors self blue
+    check-neighbors self blue
+    ask turtles at-points neighbors-offsets 1 [
+      ;; set color [color] of myself
+      set color green
+    ]
   ]
   tick
 end
 
-
+to-report neighbors-offsets [ n ]
+  ;; La siguiente linea es para el vecindario de von-neumann
+  ;; let result [ list pxcor pycor ] of patches with [ abs pxcor + abs pycor <= n ]
+  ;; Esta es para el vecindario de moore
+  ;; let result [list pxcor pycor] of patches with [abs pxcor <= n and abs pycor <= n]
+  let result [ list pxcor pycor ] of patches with [ abs pxcor <= n and abs pycor <= n ]
+  ;; report result ;; para incluir el centro en el conjunto de salida
+  report remove [0 0] result
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 354
 10
-869
-546
+870
+547
 15
-15
+-1
 16.333333333333332
 1
 10
@@ -54,13 +86,13 @@ GRAPHICS-WINDOW
 1
 1
 0
-1
-1
+0
+0
 1
 -15
 15
--15
-15
+-30
+0
 0
 0
 1
@@ -68,9 +100,9 @@ ticks
 30.0
 
 BUTTON
-28
+31
 36
-91
+94
 69
 NIL
 setap
@@ -100,25 +132,25 @@ NIL
 HORIZONTAL
 
 SLIDER
-37
+33
 129
-209
+205
 162
 satisfaction
 satisfaction
 0
 1
-0.3
+0.9
 0.1
 1
 NIL
 HORIZONTAL
 
 BUTTON
-36
-179
 109
-212
+36
+182
+69
 NIL
 ovation
 NIL
@@ -130,6 +162,39 @@ NIL
 NIL
 NIL
 1
+
+MONITOR
+36
+175
+126
+220
+NIL
+num-standing
+0
+1
+11
+
+MONITOR
+134
+175
+221
+220
+NIL
+num-sitting
+0
+1
+11
+
+MONITOR
+37
+231
+137
+276
+NIL
+num-changes
+0
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
