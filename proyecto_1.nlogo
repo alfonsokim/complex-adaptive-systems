@@ -2,7 +2,7 @@
 globals [
   num-standing
   num-sitting
-  num-moves
+  last-tick-moves
 ]
 
 patches-own [ vacant? ] 
@@ -11,6 +11,7 @@ turtles-own [ standing? ]
 to setap
   clear-all
   reset-ticks
+  set last-tick-moves 1
   ask patches [ set vacant? true ]
   create-turtles num-persons [ init-person self ]
 end
@@ -44,11 +45,11 @@ end
 
 to ovation
   tick
+  let num-moves 0
   ask turtles [
     let local-standing 0
     let local-sitting 0
     let sight 1
-    set num-moves 0
     if perception = "time" [ set sight ticks ]
     ask turtles at-points neighbors-offsets sight [
       ifelse [ standing? ] of self 
@@ -71,7 +72,8 @@ to ovation
       ]
     ]
   ]
-  ;; if num-moves = 0 [ stop ]
+  if num-moves = 0 and last-tick-moves = 0 [ stop ]
+  set last-tick-moves num-moves
 end
 
 
@@ -153,7 +155,7 @@ satisfaction
 satisfaction
 0
 1
-0.46
+0.68
 0.02
 1
 NIL
@@ -181,8 +183,8 @@ MONITOR
 227
 127
 272
-NIL
-num-standing
+standing
+count turtles with [ color = blue or color = green ]
 0
 1
 11
@@ -192,8 +194,8 @@ MONITOR
 227
 222
 272
-NIL
-num-sitting
+sitting
+count turtles with [ color = red or color = orange ]
 0
 1
 11
@@ -206,16 +208,16 @@ CHOOSER
 perception
 perception
 "local" "time"
-0
+1
 
 PLOT
-827
-148
-1027
-298
-ovacion
-ticks
-personas
+769
+12
+1223
+365
+Stats
+tickes
+persons
 0.0
 10.0
 0.0
@@ -224,7 +226,10 @@ true
 false
 "" ""
 PENS
-"unhappy" 1.0 0 -2674135 true "" "plot count turtles with [ color red ]"
+"unhappy" 1.0 0 -2674135 true "" "plot count turtles with [ color = red ]"
+"happy" 1.0 0 -13345367 true "" "plot count turtles with [ color = blue ]"
+"standing" 1.0 0 -14835848 true "" "plot count turtles with [ color = blue or color = green ]"
+"sitting" 1.0 0 -955883 true "" "plot count turtles with [ color = red or color = orange ]"
 
 @#$#@#$#@
 ## WHAT IS IT?
