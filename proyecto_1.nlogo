@@ -3,15 +3,14 @@ globals [
   num-standing
   num-sitting
   num-changes
-  num-ticks
 ]
 
 patches-own [ vacant? ] 
+turtles-own [ standing? ]
 
 to setap
   clear-all
   reset-ticks
-  set num-ticks 0
   ask patches [ set vacant? true ]
   create-turtles num-persons [ init-person self ]
 end
@@ -19,9 +18,15 @@ end
 to init-person [ joe ]
   set shape "person"
   set size 1
-  ifelse random-float 1 < 0.995 ;; satisfaction 
-    [ set color blue set num-standing num-standing + 1 ] 
-    [ set color red set num-sitting num-sitting + 1 ]
+  ifelse random-float 1 < satisfaction [ 
+    set color blue 
+    set num-standing num-standing + 1 
+    set standing? true
+  ] [ 
+    set color red 
+    set num-sitting num-sitting + 1 
+    set standing? false
+  ]
   move-person joe
 end
 
@@ -32,34 +37,50 @@ to move-person [ joe ]
   ask empty-patch [ set vacant? false ] ;; ya movido el patch actual esta ocupado
 end
 
-to check-neighbors [ joe other-color ]
-  let my-color-count count ( turtles in-radius num-ticks ) with [ color = other-color ]
-  let other-color-count count ( turtles in-radius num-ticks ) with [ color != other-color ]
-  ifelse other-color-count > my-color-count [
-    set num-standing num-standing + 1
-    set num-changes num-changes + 1
-    set num-sitting num-sitting - 1
-    set color other-color
-  ]
-  [  ]
-end
-
 to check-from-view [ joe ]
   
 end
 
+
 to ovation
-  set num-changes 0
-  set num-ticks num-ticks + 1
-  ask turtles with [ color = red ] [
-    set shape "dot"
-    check-neighbors self blue
+  tick
+  ask turtles [
+    let local-standing 0
+    let local-sitting 0
+    ask turtles at-points neighbors-offsets ticks [
+      ifelse [ standing? ] of self 
+        [ set local-standing local-standing + 1 ] 
+        [ set local-sitting local-sitting + 1 ]
+    ]
+    ifelse [ standing? ] of self [
+      if local-sitting > local-standing [
+        set standing? false
+        set color orange
+      ]
+    ] [
+      if local-standing > local-sitting [
+        set standing? true
+        set color green
+      ]
+    ]
+  ]
+end
+
+
+to ovation1
+  ask turtles with [ not standing? ] [
+    let local-standing 0
+    let local-sitting 0
     ask turtles at-points neighbors-offsets 1 [
-      ;; set color [color] of myself
+      ifelse [ standing? ] of self 
+        [ set local-standing local-standing + 1 ] 
+        [ set local-sitting local-sitting + 1 ]
+    ]
+    if local-standing > local-sitting [
+      set standing? true
       set color green
     ]
   ]
-  tick
 end
 
 to-report neighbors-offsets [ n ]
@@ -117,10 +138,10 @@ NIL
 1
 
 SLIDER
-32
-82
-204
-115
+33
+134
+205
+167
 num-persons
 num-persons
 0
@@ -132,16 +153,16 @@ NIL
 HORIZONTAL
 
 SLIDER
-33
-129
-205
-162
+34
+181
+206
+214
 satisfaction
 satisfaction
 0
 1
-0.9
-0.1
+0.5
+0.02
 1
 NIL
 HORIZONTAL
@@ -164,10 +185,10 @@ NIL
 1
 
 MONITOR
-36
-175
-126
-220
+37
+227
+127
+272
 NIL
 num-standing
 0
@@ -175,26 +196,25 @@ num-standing
 11
 
 MONITOR
-134
-175
-221
-220
+135
+227
+222
+272
 NIL
 num-sitting
 0
 1
 11
 
-MONITOR
-37
-231
-137
-276
-NIL
-num-changes
+CHOOSER
+32
+78
+170
+123
+perception
+perception
+"local" "time"
 0
-1
-11
 
 @#$#@#$#@
 ## WHAT IS IT?
