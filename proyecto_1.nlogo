@@ -6,6 +6,7 @@ globals [
 ]
 
 patches-own [ vacant? ] 
+
 turtles-own [ standing? ]
 
 to setap
@@ -14,6 +15,7 @@ to setap
   set last-tick-moves 1
   ask patches [ set vacant? true ]
   create-turtles num-persons [ init-person self ]
+  file-open "sop.txt"
 end
 
 to init-person [ joe ]
@@ -38,11 +40,6 @@ to move-person [ joe ]
   ask empty-patch [ set vacant? false ] ;; ya movido el patch actual esta ocupado
 end
 
-to check-from-view [ joe ]
-  
-end
-
-
 to ovation
   tick
   let num-moves 0
@@ -56,8 +53,8 @@ to ovation
         [ set local-standing local-standing + 1 ] 
         [ set local-sitting local-sitting + 1 ]
     ]
-    set num-sitting local-sitting
-    set num-standing local-standing
+    ;; set num-sitting local-sitting
+    ;; set num-standing local-standing
     ifelse [ standing? ] of self [
       if local-sitting > local-standing [
         set standing? false
@@ -72,8 +69,15 @@ to ovation
       ]
     ]
   ]
-  if num-moves = 0 and last-tick-moves = 0 [ stop ]
+  if num-moves = 0 and last-tick-moves = 0 [ file-close-all stop ]
   set last-tick-moves num-moves
+end
+
+to print-stats
+  let standing count turtles with [ color = blue or color = green ]
+  let sitting count turtles with [ color = red or color = orange ]
+  let stat ( word ticks "," standing "," sitting )
+  file-print stat
 end
 
 
