@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<!DOCTYPE experiments SYSTEM "behaviorspace.dtd">
+
+<experiments>
+  <experiment name="experiment" repetitions="10" runMetricsEveryStep="false">
+    <setup>setap</setup>
+    <go>ovation</go>
+    <!-- exitCondition>num-moves = 0 and last-tick-moves = 0</exitCondition -->
+    <metric>num-standing</metric>
+    <enumeratedValueSet variable="num-persons">
+      <value value="900"/>
+      <!-- value value="0.1"/ -->
+      <!-- value value="70"/ -->
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="satisfaction">
+      <value value="0.2"/>
+      <value value="0.4"/>
+      <value value="0.5"/>
+      <value value="0.6"/>
+      <value value="0.8"/>
+      <!-- value value="0.1"/ -->
+      <!-- value value="70"/ -->
+    </enumeratedValueSet>
+  </experiment>
+</experiments>

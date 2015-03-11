@@ -41,6 +41,7 @@ to move-person [ joe ]
 end
 
 to ovation
+  print-stats
   tick
   let num-moves 0
   ask turtles [
@@ -53,8 +54,6 @@ to ovation
         [ set local-standing local-standing + 1 ] 
         [ set local-sitting local-sitting + 1 ]
     ]
-    ;; set num-sitting local-sitting
-    ;; set num-standing local-standing
     ifelse [ standing? ] of self [
       if local-sitting > local-standing [
         set standing? false
@@ -76,7 +75,7 @@ end
 to print-stats
   let standing count turtles with [ color = blue or color = green ]
   let sitting count turtles with [ color = red or color = orange ]
-  let stat ( word ticks "," standing "," sitting )
+  let stat ( word perception "," satisfaction "," ticks "," standing "," sitting )
   file-print stat
 end
 
@@ -159,7 +158,7 @@ satisfaction
 satisfaction
 0
 1
-0.68
+0.36
 0.02
 1
 NIL
