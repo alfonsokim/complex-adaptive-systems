@@ -14,7 +14,7 @@ to setap
   reset-ticks
   set last-tick-moves 1
   ask patches [ set vacant? true ]
-  create-turtles num-persons [ init-person self ]
+  create-turtles num-agents [ init-person self ]
   file-open "sop.txt"
 end
 
@@ -142,8 +142,8 @@ SLIDER
 191
 205
 224
-num-persons
-num-persons
+num-agents
+num-agents
 0
 900
 900
@@ -161,7 +161,7 @@ satisfaction
 satisfaction
 0
 1
-0.62
+0.98
 0.02
 1
 NIL
