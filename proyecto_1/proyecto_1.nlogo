@@ -7,7 +7,7 @@ globals [
 
 patches-own [ vacant? ] 
 
-turtles-own [ standing? ]
+turtles-own [ standing? group ]
 
 to setap
   clear-all
@@ -21,7 +21,8 @@ end
 to init-person [ joe ]
   set shape "person"
   set size 1
-  ifelse random-float 1 < satisfaction [ 
+  set group -1 
+  ifelse random-float 1 <= satisfaction [ 
     set color blue 
     set num-standing num-standing + 1 
     set standing? true
@@ -30,10 +31,12 @@ to init-person [ joe ]
     set num-sitting num-sitting + 1 
     set standing? false
   ]
-  move-person joe
+  if settle-strategy = "random" [ move-person-random joe ]
+  if settle-strategy = "back" [ move-person-random joe ]
+  if settle-strategy = "cluster" [ move-person-random joe ]
 end
 
-to move-person [ joe ]
+to move-person-random [ joe ]
   let empty-patch one-of patches with [ vacant? ] ;; busca una posicion vacia
   ask patch-here [ set vacant? true ] ;; primero se marca el patch como vacio
   move-to empty-patch                 ;; antes de moverlo
@@ -75,7 +78,7 @@ end
 to print-stats
   let standing count turtles with [ color = blue or color = green ]
   let sitting count turtles with [ color = red or color = orange ]
-  let stat ( word perception "," satisfaction "," ticks "," standing "," sitting )
+  let stat ( word exp-id "," perception "," satisfaction "," ticks "," standing "," sitting )
   file-print stat
 end
 
@@ -136,9 +139,9 @@ NIL
 
 SLIDER
 33
-134
+191
 205
-167
+224
 num-persons
 num-persons
 0
@@ -151,14 +154,14 @@ HORIZONTAL
 
 SLIDER
 34
-181
+238
 206
-214
+271
 satisfaction
 satisfaction
 0
 1
-0.36
+0.62
 0.02
 1
 NIL
@@ -183,9 +186,9 @@ NIL
 
 MONITOR
 37
-227
+284
 127
-272
+329
 standing
 count turtles with [ color = blue or color = green ]
 0
@@ -194,9 +197,9 @@ count turtles with [ color = blue or color = green ]
 
 MONITOR
 135
-227
+284
 222
-272
+329
 sitting
 count turtles with [ color = red or color = orange ]
 0
@@ -205,9 +208,9 @@ count turtles with [ color = red or color = orange ]
 
 CHOOSER
 32
-78
+135
 170
-123
+180
 perception
 perception
 "local" "time"
@@ -233,6 +236,27 @@ PENS
 "happy" 1.0 0 -13345367 true "" "plot count turtles with [ color = blue ]"
 "standing" 1.0 0 -14835848 true "" "plot count turtles with [ color = blue or color = green ]"
 "sitting" 1.0 0 -955883 true "" "plot count turtles with [ color = red or color = orange ]"
+
+CHOOSER
+31
+80
+169
+125
+settle-strategy
+settle-strategy
+"random" "back" "cluster"
+0
+
+INPUTBOX
+37
+337
+93
+397
+exp-id
+0
+1
+0
+Number
 
 @#$#@#$#@
 ## WHAT IS IT?

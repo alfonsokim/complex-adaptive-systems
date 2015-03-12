@@ -2,24 +2,37 @@
 <!DOCTYPE experiments SYSTEM "behaviorspace.dtd">
 
 <experiments>
-  <experiment name="experiment" repetitions="10" runMetricsEveryStep="false">
+  <experiment name="experiment" repetitions="1" runMetricsEveryStep="false">
     <setup>setap</setup>
     <go>ovation</go>
     <!-- exitCondition>num-moves = 0 and last-tick-moves = 0</exitCondition -->
     <metric>num-standing</metric>
+    <!--
     <enumeratedValueSet variable="num-persons">
+      <value value="200"/>
+      <value value="500"/>
+      <value value="700"/>
       <value value="900"/>
-      <!-- value value="0.1"/ -->
-      <!-- value value="70"/ -->
     </enumeratedValueSet>
+    -->
+    <!--
+    <enumeratedValueSet variable="perception">
+      <value value="local"/>
+      <value value="time"/>
+    </enumeratedValueSet>
+    -->
+
+    <steppedValueSet variable="exp-id" first="1" step="1" last="50"/>
+
     <enumeratedValueSet variable="satisfaction">
+      <value value="0.05"/>
       <value value="0.2"/>
       <value value="0.4"/>
       <value value="0.5"/>
       <value value="0.6"/>
       <value value="0.8"/>
-      <!-- value value="0.1"/ -->
-      <!-- value value="70"/ -->
+      <value value="0.95"/>
     </enumeratedValueSet>
+
   </experiment>
 </experiments>
