@@ -3,6 +3,8 @@ globals [
   num-standing
   num-sitting
   last-tick-moves
+  back-last-x
+  back-last-y
 ]
 
 patches-own [ vacant? ] 
@@ -13,6 +15,8 @@ to setap
   clear-all
   reset-ticks
   set last-tick-moves 1
+  set back-last-x -15
+  set back-last-y 15
   ask patches [ set vacant? true ]
   create-turtles num-agents [ init-person self ]
   file-open "sop.txt"
@@ -32,7 +36,7 @@ to init-person [ joe ]
     set standing? false
   ]
   if settle-strategy = "random" [ move-person-random joe ]
-  if settle-strategy = "back" [ move-person-random joe ]
+  if settle-strategy = "back" [ move-person-back joe ]
   if settle-strategy = "cluster" [ move-person-random joe ]
 end
 
@@ -41,6 +45,13 @@ to move-person-random [ joe ]
   ask patch-here [ set vacant? true ] ;; primero se marca el patch como vacio
   move-to empty-patch                 ;; antes de moverlo
   ask empty-patch [ set vacant? false ] ;; ya movido el patch actual esta ocupado
+end
+
+to move-person-back [ joe ]
+  move-to patch-at back-last-x back-last-y
+  ifelse back-last-x = 15 
+    [ set back-last-x -15 set back-last-y back-last-y - 1 ]
+    [ set back-last-x back-last-x + 1 ]
 end
 
 to ovation
@@ -99,7 +110,7 @@ GRAPHICS-WINDOW
 753
 547
 15
--1
+15
 16.333333333333332
 1
 10
@@ -112,8 +123,8 @@ GRAPHICS-WINDOW
 1
 -15
 15
--30
-0
+-15
+15
 1
 1
 1
@@ -161,7 +172,7 @@ satisfaction
 satisfaction
 0
 1
-0.98
+0.5
 0.02
 1
 NIL
@@ -245,7 +256,7 @@ CHOOSER
 settle-strategy
 settle-strategy
 "random" "back" "cluster"
-0
+1
 
 INPUTBOX
 37
