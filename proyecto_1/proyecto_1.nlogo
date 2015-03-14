@@ -1,45 +1,65 @@
+;; =============== Proyecto 1 ===============
+;; Simulacion del Standing Ovation Problem
+;; Alfonso Kim | MCC 
+;; ==========================================
 
 globals [
-  num-standing
-  num-sitting
-  last-tick-moves
-  back-last-x
-  back-last-y
+  num-standing     ;; Numero de personas de pie
+  num-sitting      ;; Numero de personas sentadas
+  last-tick-moves  ;; Movimientos del ultimo tick, para saber cuando detenerse
+  ;; Variables para la formacion de atras para adelante
+  back-last-x      ;; Ultima posicion en X ocupada
+  back-last-y      ;; Ultima posicion en Y ocupada
 ]
 
-patches-own [ vacant? ] 
+patches-own [ vacant? ] ;; El patch esta ocupado
 
-turtles-own [ standing? group ]
+turtles-own [ 
+  standing?        ;; La tortuga esta de pie? 
+  group            ;; Grupo de la tortuga, para la formacion de grupo
+]
 
+;; ==========================================================
+;; Inicializacion del ambiente
+;; ----------------------------------------------------------
 to setap
   clear-all
   reset-ticks
   set last-tick-moves 1
-  set back-last-x -15
+  set back-last-x -15    ;; El mundo des de 30x30 con el origen al centro-arriba
   set back-last-y 15
-  ask patches [ set vacant? true ]
+  ask patches [ set vacant? true ] ;; Tdos los patches estan vacios
   create-turtles num-agents [ init-person self ]
-  file-open "sop.txt"
+  file-open "sop.txt"    ;; Archivo con los contadores de salida
 end
 
+
+;; ==========================================================
+;; Inicializa un agente
+;; ----------------------------------------------------------
 to init-person [ joe ]
   set shape "person"
   set size 1
-  set group -1 
-  ifelse random-float 1 <= satisfaction [ 
-    set color blue 
-    set num-standing num-standing + 1 
+  set group -1                             ;; Inicialmente no tienen grupos
+  ifelse random-float 1 <= satisfaction [  ;; Si estan satisfechos
+    set color blue                         ;; se colorean de azul
+    set num-standing num-standing + 1      ;; y se pone de pie
     set standing? true
-  ] [ 
-    set color red 
-    set num-sitting num-sitting + 1 
+  ] [                                      ;; Si no
+    set color red                          ;; Se colorean de rojo
+    set num-sitting num-sitting + 1        ;; se sienta
     set standing? false
   ]
+  ;; Estrategias de acomodo en la sala
   if settle-strategy = "random" [ move-person-random joe ]
   if settle-strategy = "back" [ move-person-back joe ]
   if settle-strategy = "cluster" [ move-person-random joe ]
 end
 
+
+;; ==========================================================
+;; Se acomoda una persona aleatoria
+;; ----------------------------------------------------------
 to move-person-random [ joe ]
   let empty-patch one-of patches with [ vacant? ] ;; busca una posicion vacia
   ask patch-here [ set vacant? true ] ;; primero se marca el patch como vacio
@@ -47,6 +67,10 @@ to move-person-random [ joe ]
   ask empty-patch [ set vacant? false ] ;; ya movido el patch actual esta ocupado
 end
 
+
+;; ==========================================================
+;; Se acomoda una persona de atras para adelante
+;; ----------------------------------------------------------
 to move-person-back [ joe ]
   move-to patch-at back-last-x back-last-y
   ifelse back-last-x = 15 
@@ -54,38 +78,51 @@ to move-person-back [ joe ]
     [ set back-last-x back-last-x + 1 ]
 end
 
+
+;; ==========================================================
+;; Proceso de la ovacion
+;; ----------------------------------------------------------
 to ovation
-  print-stats
+  print-stats               ;; Se imprimen las estadisticas
   tick
   let num-moves 0
   ask turtles [
     let local-standing 0
     let local-sitting 0
-    let sight 1
+    let sight 1             ;; La vision es 1 o el numero de tiks
     if perception = "time" [ set sight ticks ]
+    ;; Para cada otra tortuga en el rango de vision 
     ask turtles at-points neighbors-offsets sight [
-      ifelse [ standing? ] of self 
+      ;; Se suman las tortugas que estan de pie y las sentadas
+      ifelse [ standing? ] of self
         [ set local-standing local-standing + 1 ] 
         [ set local-sitting local-sitting + 1 ]
     ]
-    ifelse [ standing? ] of self [
-      if local-sitting > local-standing [
-        set standing? false
-        set color orange
+    ifelse [ standing? ] of self [         ;; Si estoy de pie
+      if local-sitting > local-standing [  ;; Me siento 
+        set standing? false                ;; dependiendo del numero
+        set color orange                   ;; de tortugas al rededor
         set num-moves num-moves + 1
       ]
-    ] [ ;; else
+    ] [                                    ;; Si esta sentada
       if local-standing > local-sitting [
-        set standing? true
-        set color green
-        set num-moves num-moves + 1
+        set standing? true                 ;; Me paro 
+        set color green                    ;; dependiendo del numero
+        set num-moves num-moves + 1        ;; de tortugas al rededor
       ]
     ]
   ]
+  ;; Si no hay movimientos desde hace 2 ticks
   if num-moves = 0 and last-tick-moves = 0 [ file-close-all stop ]
   set last-tick-moves num-moves
 end
 
+
+;; ==========================================================
+;; Imprime a archivo las estadisticas
+;; Imprime un CSV con formato:
+;; id_experimento, percepcion, satisfaccion, num_ticks, tortugas de pie, tortugas sentadas
+;; ----------------------------------------------------------
 to print-stats
   let standing count turtles with [ color = blue or color = green ]
   let sitting count turtles with [ color = red or color = orange ]
@@ -94,6 +131,9 @@ to print-stats
 end
 
 
+;; ==========================================================
+;; Encuentra el rango de patches para el conteo de vecinos
+;; ----------------------------------------------------------
 to-report neighbors-offsets [ n ]
   ;; La siguiente linea es para el vecindario de von-neumann
   ;; let result [ list pxcor pycor ] of patches with [ abs pxcor + abs pycor <= n ]
