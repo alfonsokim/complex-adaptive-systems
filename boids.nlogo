@@ -29,31 +29,31 @@ to go
       let rand-y random 5 + random -5
       let cord-x [ xcor ] of leader ;; + rand-x
       let cord-y [ ycor ] of leader ;; + rand-y
-      set heading head-to ;; + heading-delta 
+      set heading head-to + heading-delta 
       ;; face leader
     ] 
     
-    let near-me fishes in-cone 5 vision-angle
+    let near-me fishes in-cone vision-depth vision-angle
     if count near-me >= 1 [
       lt random 45
       rt random 45
     ]
     
-    let oh-my predators in-cone 5 vision-angle
+    let oh-my predators in-cone vision-depth vision-angle
     if count oh-my >= 1 [ 
       face one-of oh-my
       rt 180 
       fd velocity * 2
     ]
     
-    fd velocity
+    fd velocity ;; + random-float 1 - random-float 1
   ]
   
   ask fishes [
-    let near-me count fishes in-cone 5 vision-angle
+    let near-me count fishes in-cone vision-depth vision-angle
     ;; if near-me > num-mates and near-me > 5 [
     if near-me > 10 [
-      set mates fishes in-cone 5 vision-angle
+      set mates fishes in-cone vision-depth vision-angle
       set leader one-of mates
       ;; set num-mates count mates
       set free? false
@@ -65,7 +65,7 @@ to go
       lt random 45
       rt random 45
     ]
-    fd random 3
+    fd (random 3) + 0.1
   ]
   
   ask fishes with [ not free? ] [
@@ -203,7 +203,7 @@ vision-angle
 vision-angle
 100
 200
-180
+170
 10
 1
 NIL
@@ -218,7 +218,7 @@ vision-depth
 vision-depth
 1
 10
-5
+9
 1
 1
 NIL
