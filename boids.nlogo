@@ -1,16 +1,17 @@
 
-globals [ system-velocity ]
 breed [ fishes fish ]
-fishes-own [ velocity mates num-mates free? centroid-x centroid-y leader head-to ]
+breed [ predators ]
+fishes-own [ velocity mates free? centroid-x centroid-y leader head-to heading-delta ]
 
 to setap
   clear-all
   create-fishes num-fishes [
-    set shape "fish"
+    set shape "cow"
     setxy random-pxcor random-pycor
     set velocity ( random-float 1 ) + 0.1
     set free? true
-    set num-mates 0
+    ;; set num-mates 0
+    set heading-delta random 10 + random -10
   ]
   reset-ticks
 end
@@ -20,34 +21,51 @@ to go
   
   ask fishes [
     if free? and random-float 1 < 0.5 [
-    ;; if random-float 1 < 0.5 [ 
       lt random 45
       rt random 45
     ]
     if not free? [
       let rand-x random 5 + random -5
       let rand-y random 5 + random -5
-      ;;facexy centroid-x centroid-y
       let cord-x [ xcor ] of leader ;; + rand-x
       let cord-y [ ycor ] of leader ;; + rand-y
-      set heading head-to + random 10 + random -10
+      set heading head-to ;; + heading-delta 
       ;; face leader
-      ;; facexy cord-x cord-y
     ] 
-    ;; if count fishes-on ( patch-at-heading-and-distance head-to velocity ) > 0 [ set velocity velocity - 0.1 ]
-    fd velocity + random-float 2 - random-float 2
+    
+    let near-me fishes in-cone 5 vision-angle
+    if count near-me >= 1 [
+      lt random 45
+      rt random 45
+    ]
+    
+    let oh-my predators in-cone 5 vision-angle
+    if count oh-my >= 1 [ 
+      face one-of oh-my
+      rt 180 
+      fd velocity * 2
+    ]
+    
+    fd velocity
   ]
   
   ask fishes [
-    ;; let near-me count fishes in-radius 2
-    let near-me count fishes in-cone 4 100
-    if near-me > num-mates and near-me > 5 [
-      set mates fishes in-cone 4 100
+    let near-me count fishes in-cone 5 vision-angle
+    ;; if near-me > num-mates and near-me > 5 [
+    if near-me > 10 [
+      set mates fishes in-cone 5 vision-angle
       set leader one-of mates
-      set num-mates count mates
+      ;; set num-mates count mates
       set free? false
     ]
-    
+  ]
+  
+  ask predators [
+    if random-float 1 < 0.5 [
+      lt random 45
+      rt random 45
+    ]
+    fd random 3
   ]
   
   ask fishes with [ not free? ] [
@@ -73,6 +91,14 @@ to go
   
   tick
   
+end
+
+to predator
+  create-predators 1 [
+    set shape "person"
+    set size 1.5
+    setxy random-pxcor random-pycor
+  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -103,9 +129,9 @@ ticks
 30.0
 
 BUTTON
-39
+25
 31
-102
+88
 64
 NIL
 setap
@@ -120,9 +146,9 @@ NIL
 1
 
 BUTTON
-41
+27
 76
-104
+90
 109
 NIL
 go
@@ -136,35 +162,64 @@ NIL
 NIL
 1
 
-PLOT
-690
-62
-890
-212
-plot
-NIL
-NIL
-0.0
-10.0
-0.0
-10.0
-true
-false
-"" ""
-PENS
-"default" 1.0 0 -16777216 true "" "plot count fishes with [ free? ]"
-
 SLIDER
-26
-139
-198
-172
+25
+121
+197
+154
 num-fishes
 num-fishes
 10
 500
-300
+350
 10
+1
+NIL
+HORIZONTAL
+
+BUTTON
+109
+76
+195
+109
+NIL
+predator
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+24
+168
+196
+201
+vision-angle
+vision-angle
+100
+200
+180
+10
+1
+NIL
+HORIZONTAL
+
+SLIDER
+24
+219
+196
+252
+vision-depth
+vision-depth
+1
+10
+5
+1
 1
 NIL
 HORIZONTAL
