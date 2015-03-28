@@ -56,55 +56,58 @@ to flock [nemo ]
   ]
 end
 
+to update-globals [ nemo ]
+  let sum-velocity 0
+  let sum-heading 0  
+  let sum-system-vel 0
+  ask mates [
+    set sum-velocity ( sum-velocity + [ velocity ] of self )
+    set sum-heading sum-heading + [ heading ] of self
+  ]  
+  if sum-velocity > 0 [
+    set velocity sum-velocity / ( count mates )
+    set head-to sum-heading / ( count mates ) 
+  ]
+  ;; set sum-system-vel sum-system-vel + velocity
+end
+
 to go
   
-  let sum-system-vel 0
+  ;;let sum-system-vel 0
   
   ask fishes [
     
     ifelse not free? [
-      
-      set heading head-to + heading-delta 
-      let sum-velocity 0
-      let sum-heading 0
-    
-      ask mates [
-        set sum-velocity ( sum-velocity + [ velocity ] of self )
-        set sum-heading sum-heading + [ heading ] of self
-      ]
-    
-      if sum-velocity > 0 [
-        set velocity sum-velocity / ( count mates )
-        set head-to sum-heading / ( count mates ) 
-      ]
+      update-globals self
+    ;;  
+    ;;  let sum-velocity 0
+    ;;  let sum-heading 0
+    ;;
+    ;;  ask mates [
+    ;;    set sum-velocity ( sum-velocity + [ velocity ] of self )
+    ;;    set sum-heading sum-heading + [ heading ] of self
+    ;;  ]
+    ;;
+    ;;  if sum-velocity > 0 [
+    ;;    set velocity sum-velocity / ( count mates )
+    ;;    set head-to sum-heading / ( count mates ) 
+    ;;  ]
     ] [ ;; free
       lt random 45
       rt random 45
     ]
     
-    ;; let near-me fishes in-cone vision-depth vision-angle
-    
-    ;; if count near-me >= 1 [
-    ;;   lt random 45
-    ;;   rt random 45
-    ;; ]
-    
-    ;; if count near-me > 10 [
-    ;;   set mates fishes in-cone vision-depth vision-angle
-    ;;   set leader one-of mates
-    ;;   set free? false
-    ;; ]
-    
     flock self
     escape-predators self
     
+    set heading head-to + heading-delta 
     fd velocity ;; + random-float 1 - random-float 1
     
-    set sum-system-vel sum-system-vel + velocity
+    ;; set sum-system-vel sum-system-vel + velocity
     
   ] ;; ask fishes
   
-  set system-velocity sum-system-vel / count fishes
+  ;; set system-velocity sum-system-vel / count fishes
   move-predators
   tick
 end
@@ -187,7 +190,7 @@ num-fishes
 num-fishes
 10
 500
-350
+500
 10
 1
 NIL
@@ -234,22 +237,11 @@ vision-depth
 vision-depth
 1
 10
-4
+8
 1
 1
 NIL
 HORIZONTAL
-
-MONITOR
-22
-270
-133
-315
-NIL
-system-velocity
-4
-1
-11
 
 @#$#@#$#@
 ## WHAT IS IT?
