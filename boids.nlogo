@@ -1,7 +1,16 @@
 
 breed [ fishes fish ]
 breed [ predators ]
-fishes-own [ velocity mates free? centroid-x centroid-y leader head-to heading-delta ]
+fishes-own [ 
+  velocity 
+  mates 
+  free? 
+  ;; centroid-x 
+  ;; centroid-y 
+  leader 
+  head-to 
+  heading-delta 
+]
 
 to setap
   clear-all
@@ -25,10 +34,10 @@ to go
       rt random 45
     ]
     if not free? [
-      let rand-x random 5 + random -5
-      let rand-y random 5 + random -5
-      let cord-x [ xcor ] of leader ;; + rand-x
-      let cord-y [ ycor ] of leader ;; + rand-y
+      ;; let rand-x random 5 + random -5
+      ;; let rand-y random 5 + random -5
+      ;; let cord-x [ xcor ] of leader ;; + rand-x
+      ;; let cord-y [ ycor ] of leader ;; + rand-y
       set heading head-to + heading-delta 
       ;; face leader
     ] 
@@ -70,21 +79,21 @@ to go
   
   ask fishes with [ not free? ] [
     let sum-velocity 0
-    let sum-x 0
-    let sum-y 0
+    ;; let sum-x 0
+    ;; let sum-y 0
     let sum-heading 0
     
     ask mates [
       set sum-velocity ( sum-velocity + [ velocity ] of self )
-      set sum-x sum-x + [ xcor ] of self
-      set sum-y sum-y + [ ycor ] of self
+      ;; set sum-x sum-x + [ xcor ] of self
+      ;; set sum-y sum-y + [ ycor ] of self
       set sum-heading sum-heading + [ heading ] of self
     ]
     
     if sum-velocity > 0 [
       set velocity sum-velocity / ( count mates )
-      set centroid-x sum-x / ( count mates ) 
-      set centroid-y sum-y / ( count mates ) 
+      ;; set centroid-x sum-x / ( count mates ) 
+      ;; set centroid-y sum-y / ( count mates ) 
       set head-to sum-heading / ( count mates ) 
     ]
   ]
@@ -203,7 +212,7 @@ vision-angle
 vision-angle
 100
 200
-170
+100
 10
 1
 NIL
