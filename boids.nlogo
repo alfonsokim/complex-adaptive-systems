@@ -43,6 +43,18 @@ to escape-predators [ nemo ]
   ]
 end
 
+to flock [nemo ]
+  let near-me fishes in-cone vision-depth vision-angle
+  if count near-me >= 1 [
+    lt random 45
+    rt random 45
+  ]   
+  if count near-me > 10 [
+    set mates fishes in-cone vision-depth vision-angle
+    set leader one-of mates
+    set free? false
+  ]
+end
 
 to go
   
@@ -70,19 +82,20 @@ to go
       rt random 45
     ]
     
-    let near-me fishes in-cone vision-depth vision-angle
+    ;; let near-me fishes in-cone vision-depth vision-angle
     
-    if count near-me >= 1 [
-      lt random 45
-      rt random 45
-    ]
+    ;; if count near-me >= 1 [
+    ;;   lt random 45
+    ;;   rt random 45
+    ;; ]
     
-    if count near-me > 10 [
-      set mates fishes in-cone vision-depth vision-angle
-      set leader one-of mates
-      set free? false
-    ]
+    ;; if count near-me > 10 [
+    ;;   set mates fishes in-cone vision-depth vision-angle
+    ;;   set leader one-of mates
+    ;;   set free? false
+    ;; ]
     
+    flock self
     escape-predators self
     
     fd velocity ;; + random-float 1 - random-float 1
