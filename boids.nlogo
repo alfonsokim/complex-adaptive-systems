@@ -1,16 +1,22 @@
+;; ============================================================
+;; Simulacion de parvadas formando grupos y evitando depredadores
+;; Alfonso Kim - Sistemas Complejos Adaptativos
+;; ------------------------------------------------------------ 
 
-globals [ system-velocity ]
-breed [ fishes fish ]
-breed [ predators ]
+breed [ fishes fish ] ;; Solo para que el codigo diga peces =)
+breed [ predators ]   ;; Los deprededadores
 fishes-own [ 
-  velocity 
-  mates 
-  free? 
-  leader 
-  head-to 
-  heading-delta 
+  velocity            ;; La velocidad de los peces
+  mates               ;; El grupo o parvada
+  free?               ;; Si el pez esta libre
+  leader              ;; El lider del grupo
+  head-to             ;; A donde se dirige el grupo
+  heading-delta       ;; Un aleatorio para la direccion
 ]
 
+;; ============================================================
+;; Inicializacion del ambiente
+;; ------------------------------------------------------------ 
 to setap
   clear-all
   create-fishes num-fishes [
@@ -20,10 +26,12 @@ to setap
     set free? true
     set heading-delta random 10 + random -10
   ]
-  set system-velocity 0
   reset-ticks
 end
 
+;; ============================================================
+;; Movimiento de los depredadores
+;; ------------------------------------------------------------ 
 to move-predators 
   ask predators [
     if random-float 1 < 0.5 [
@@ -34,28 +42,41 @@ to move-predators
   ]
 end
 
+;; ============================================================
+;; Evitar a los depredadores
+;; ------------------------------------------------------------ 
 to escape-predators [ nemo ]
+  ;; Si hay un depredador en la linea de vision
   let oh-my predators in-cone vision-depth vision-angle
   if count oh-my >= 1 [ 
-    face one-of oh-my
+    face one-of oh-my ;; Dirigirse al otro lado del depredador
     rt 180 
-    fd velocity * 2
+    fd velocity * 2   ;; y correr como el viento
   ]
 end
 
+;; ============================================================
+;; Agruparse
+;; ------------------------------------------------------------ 
 to flock [nemo ]
   let near-me fishes in-cone vision-depth vision-angle
-  if count near-me >= 1 [
+  if count near-me >= 1 [ ;; Evitar chocar, aun no funciona bien
     lt random 45
     rt random 45
   ]   
-  if count near-me > 10 [
+  if count near-me > 10 [ ;; Cambio de grupo
     set mates fishes in-cone vision-depth vision-angle
     set leader one-of mates
     set free? false
   ]
+  ;; Apuntar a donde apunta el resto del grupo
+  set heading head-to + heading-delta
+  fd velocity + random-float 1 - random-float 1
 end
 
+;; ============================================================
+;; Este no se si sea necesario
+;; ------------------------------------------------------------ 
 to update-globals [ nemo ]
   let sum-velocity 0
   let sum-heading 0  
@@ -68,50 +89,28 @@ to update-globals [ nemo ]
     set velocity sum-velocity / ( count mates )
     set head-to sum-heading / ( count mates ) 
   ]
-  ;; set sum-system-vel sum-system-vel + velocity
 end
 
+;; ============================================================
+;; ------------------------------------------------------------ 
 to go
-  
-  ;;let sum-system-vel 0
-  
+  move-predators
   ask fishes [
-    
     ifelse not free? [
       update-globals self
-    ;;  
-    ;;  let sum-velocity 0
-    ;;  let sum-heading 0
-    ;;
-    ;;  ask mates [
-    ;;    set sum-velocity ( sum-velocity + [ velocity ] of self )
-    ;;    set sum-heading sum-heading + [ heading ] of self
-    ;;  ]
-    ;;
-    ;;  if sum-velocity > 0 [
-    ;;    set velocity sum-velocity / ( count mates )
-    ;;    set head-to sum-heading / ( count mates ) 
-    ;;  ]
     ] [ ;; free
       lt random 45
       rt random 45
+      fd random-float 1 - random-float 1
     ]
-    
-    flock self
-    escape-predators self
-    
-    set heading head-to + heading-delta 
-    fd velocity ;; + random-float 1 - random-float 1
-    
-    ;; set sum-system-vel sum-system-vel + velocity
-    
+  escape-predators self
+  flock self
   ] ;; ask fishes
-  
-  ;; set system-velocity sum-system-vel / count fishes
-  move-predators
   tick
 end
 
+;; ============================================================
+;; ------------------------------------------------------------ 
 to predator
   create-predators 1 [
     set shape "person"
@@ -190,7 +189,7 @@ num-fishes
 num-fishes
 10
 500
-500
+300
 10
 1
 NIL
