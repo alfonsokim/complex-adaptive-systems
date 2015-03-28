@@ -1,12 +1,11 @@
 
+globals [ system-velocity ]
 breed [ fishes fish ]
 breed [ predators ]
 fishes-own [ 
   velocity 
   mates 
   free? 
-  ;; centroid-x 
-  ;; centroid-y 
   leader 
   head-to 
   heading-delta 
@@ -19,14 +18,16 @@ to setap
     setxy random-pxcor random-pycor
     set velocity ( random-float 1 ) + 0.1
     set free? true
-    ;; set num-mates 0
     set heading-delta random 10 + random -10
   ]
+  set system-velocity 0
   reset-ticks
 end
 
 
 to go
+  
+  let sum-system-vel 0
   
   ask fishes [
     if free? and random-float 1 < 0.5 [
@@ -34,12 +35,7 @@ to go
       rt random 45
     ]
     if not free? [
-      ;; let rand-x random 5 + random -5
-      ;; let rand-y random 5 + random -5
-      ;; let cord-x [ xcor ] of leader ;; + rand-x
-      ;; let cord-y [ ycor ] of leader ;; + rand-y
       set heading head-to + heading-delta 
-      ;; face leader
     ] 
     
     let near-me fishes in-cone vision-depth vision-angle
@@ -48,7 +44,14 @@ to go
       rt random 45
     ]
     
+    if count near-me > 10 [
+      set mates fishes in-cone vision-depth vision-angle
+      set leader one-of mates
+      set free? false
+    ]
+    
     let oh-my predators in-cone vision-depth vision-angle
+    
     if count oh-my >= 1 [ 
       face one-of oh-my
       rt 180 
@@ -56,18 +59,24 @@ to go
     ]
     
     fd velocity ;; + random-float 1 - random-float 1
-  ]
+    
+    set sum-system-vel sum-system-vel + velocity
+    
+  ] ;; ask fishes
   
-  ask fishes [
-    let near-me count fishes in-cone vision-depth vision-angle
-    ;; if near-me > num-mates and near-me > 5 [
-    if near-me > 10 [
-      set mates fishes in-cone vision-depth vision-angle
-      set leader one-of mates
-      ;; set num-mates count mates
-      set free? false
-    ]
-  ]
+  set system-velocity sum-system-vel / count fishes
+  
+  ;; let sum-system-vel 0
+  ;; ask fishes [
+  ;;   let near-me count fishes in-cone vision-depth vision-angle
+  ;;   if near-me > 10 [
+  ;;     set mates fishes in-cone vision-depth vision-angle
+  ;;     set leader one-of mates
+  ;;     set free? false
+  ;;   ]
+  ;; set sum-system-vel sum-system-vel + velocity
+  ;; ]
+  ;; set system-velocity sum-system-vel / count fishes
   
   ask predators [
     if random-float 1 < 0.5 [
@@ -79,21 +88,15 @@ to go
   
   ask fishes with [ not free? ] [
     let sum-velocity 0
-    ;; let sum-x 0
-    ;; let sum-y 0
     let sum-heading 0
     
     ask mates [
       set sum-velocity ( sum-velocity + [ velocity ] of self )
-      ;; set sum-x sum-x + [ xcor ] of self
-      ;; set sum-y sum-y + [ ycor ] of self
       set sum-heading sum-heading + [ heading ] of self
     ]
     
     if sum-velocity > 0 [
       set velocity sum-velocity / ( count mates )
-      ;; set centroid-x sum-x / ( count mates ) 
-      ;; set centroid-y sum-y / ( count mates ) 
       set head-to sum-heading / ( count mates ) 
     ]
   ]
@@ -212,7 +215,7 @@ vision-angle
 vision-angle
 100
 200
-100
+170
 10
 1
 NIL
@@ -227,11 +230,22 @@ vision-depth
 vision-depth
 1
 10
-9
+8
 1
 1
 NIL
 HORIZONTAL
+
+MONITOR
+22
+270
+133
+315
+NIL
+system-velocity
+4
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
