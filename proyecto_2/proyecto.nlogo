@@ -38,8 +38,9 @@ end
 ;; ====================================================================================
 
 to growth [ cell ]
-  if [ growth-signal ] of patch-here > [ growth-sensibility ] of cell and [ size ] of cell < max-size [
-    set size [ size ] of cell + 0.005
+  let cell-size [ size ] of cell
+  if [ growth-signal ] of patch-here > [ growth-sensibility ] of cell and cell-size < max-size [
+    set size cell-size + 0.005
   ]
 end
 
@@ -146,7 +147,7 @@ growth-sensibility
 growth-sensibility
 0
 1
-0.95
+0.5
 0.05
 1
 NIL
