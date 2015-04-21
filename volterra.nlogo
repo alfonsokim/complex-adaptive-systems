@@ -19,7 +19,7 @@ to init-wolf [ grrr ]
   set hungry 5
   set color red
   set max-capacity 500
-  set reproduce-factor 0.1
+  set reproduce-factor 0.3
 end
 
 to init-turtle [ t parent ]
@@ -66,9 +66,9 @@ to go
     reproduce self
   ]
   ask wolves [ 
-    if hungry > 2 [ eat self ]
-    set hungry hungry + 0.5
+    if hungry >= 0 [ eat self ]
     if hungry >= 10 [ die ]
+    set hungry hungry + 0.5
   ]
   tick
 end
@@ -148,7 +148,7 @@ num-wolves
 num-wolves
 0
 100
-20
+50
 1
 1
 NIL
