@@ -8,8 +8,8 @@ to init-sheep [ beee ]
   setxy random-xcor random-ycor
   set hungry 0
   set color green
-  set max-capacity 500
-  set reproduce-factor 0.05
+  set max-capacity 300
+  set reproduce-factor sheep-reproduce
 end
 
 to init-wolf [ grrr ]
@@ -18,8 +18,8 @@ to init-wolf [ grrr ]
   setxy random-xcor random-ycor
   set hungry 5
   set color red
-  set max-capacity 500
-  set reproduce-factor 0.3
+  set max-capacity 300
+  set reproduce-factor wolf-reproduce
 end
 
 to init-turtle [ t parent ]
@@ -67,7 +67,7 @@ to go
   ]
   ask wolves [ 
     if hungry >= 0 [ eat self ]
-    if hungry >= 10 [ die ]
+    if hungry >= 20 [ die ]
     set hungry hungry + 0.5
   ]
   tick
@@ -189,6 +189,36 @@ false
 PENS
 "wolves" 1.0 0 -8053223 true "" "plot count wolves"
 "sheeps" 1.0 0 -14439633 true "" "plot count sheep"
+
+SLIDER
+20
+158
+192
+191
+sheep-reproduce
+sheep-reproduce
+0
+1
+0.15
+0.05
+1
+NIL
+HORIZONTAL
+
+SLIDER
+20
+204
+192
+237
+wolf-reproduce
+wolf-reproduce
+0
+1
+0.7
+0.01
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
