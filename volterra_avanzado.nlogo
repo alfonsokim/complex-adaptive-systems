@@ -1,15 +1,22 @@
 
 breed [ sheep ]
 breed [ wolves wolf ]
-turtles-own [ hungry capacity max-capacity reproduce-factor ]
+turtles-own [ 
+  hungry 
+  capacity 
+  max-capacity 
+  reproduce-factor 
+  face-factor
+]
 
 to init-sheep [ beee ]
   set shape "person"
   setxy random-xcor random-ycor
   set hungry 0
   set color green
-  set max-capacity 300
+  set max-capacity 100
   set reproduce-factor sheep-reproduce
+  set face-factor 180
 end
 
 to init-wolf [ grrr ]
@@ -18,8 +25,9 @@ to init-wolf [ grrr ]
   setxy random-xcor random-ycor
   set hungry 5
   set color red
-  set max-capacity 300
+  set max-capacity 100
   set reproduce-factor wolf-reproduce
+  set face-factor 0
 end
 
 to init-turtle [ t parent ]
@@ -33,6 +41,10 @@ to dance [ dawg ]
     rt random 45
   ]
   fd 0.5
+end
+
+to move [ dawg ]
+  
 end
 
 to eat [ grrr ]
@@ -213,7 +225,7 @@ wolf-reproduce
 wolf-reproduce
 0
 1
-0.6
+0.8
 0.01
 1
 NIL
