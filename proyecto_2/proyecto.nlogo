@@ -1,8 +1,8 @@
 
 ;; ====================================================================================
 
-globals [ growth-value ] 
-patches-own [ growth-signal ]
+globals [ growth-value cell-size ] 
+patches-own [ growth-signal vessel? ]
 turtles-own [ growth-trigger max-size ]
 
 ;; ====================================================================================
@@ -10,6 +10,8 @@ turtles-own [ growth-trigger max-size ]
 to setup
   clear-all
   ask patches [ init-patch self ]
+  setup-vessel 0 0 1  ;; Inicializa las venas hacia el extremo superior derecho
+  setup-vessel 0 0 -1 ;; Inicializa las venas hacia el extremo inferior izquierdo
   create-turtles 50 [
     init-cell self
   ]
@@ -20,27 +22,29 @@ end
 
 to init-patch [ p ]
   set growth-signal 0
+  set vessel? false
 end
 
 ;; ====================================================================================
 
 to init-cell [ cell ]
   set shape "dot"
-  set color red
+  set color white
   set size 0.5
   set max-size 3
-  let x [ xcor ] of turtle 0 + random 5 - random 5
-  let y [ ycor ] of turtle 0 + random 5 - random 5
-  setxy x y
+  let home-patch one-of patches with [ vessel? and count turtles-here < 10 ]
+  setxy [ pxcor ] of home-patch [ pycor ] of home-patch ; tal vez haya una mejor forma de 
+                                                        ; colocar las celulas
   set growth-trigger growth-sensibility
 end
 
 ;; ====================================================================================
 
 to growth [ cell ]
-  let cell-size [ size ] of cell
-  if [ growth-signal ] of patch-here > [ growth-sensibility ] of cell and cell-size < max-size [
-    set size cell-size + 0.005
+  let local-cell-size [ size ] of cell
+  if [ growth-signal ] of patch-here > [ growth-sensibility ] of cell and local-cell-size < max-size [
+    set size local-cell-size + 0.005
+    set cell-size size ;; Promediar el tamanio de todas las celulas o algo
   ]
 end
 
@@ -51,19 +55,40 @@ to update-environment
   set growth-value [ growth-signal ] of patch 0 0
 end
 
+
+;; ====================================================================================
+;; Dibuja los vasos sanguineos
+;; Solo va dibujando una linea en la direccion dada 
+;; (1 = hacia arriba a la derecha, -1 = hacia abajo a la izquierda)
+;; -----------------------------------------------------------------------------------
+to setup-vessel [ x y direction ]
+  ;; Checar limites del mundo
+  if x <= max-pxcor and x >= min-pxcor and y <= max-pycor and y >= min-pycor [
+    ask patch x y [ 
+      set pcolor red 
+      set vessel? true
+    ]
+    ifelse random-float 1 < 0.5 
+      [ setup-vessel x ( y + direction ) direction ] 
+      [ setup-vessel ( x + direction ) y direction ]
+  ]
+end
+
 ;; ====================================================================================
 
 to go
-  ask turtles [ growth self ]
+  ask turtles [ 
+    if enable-growth [ growth self ] 
+  ]
   update-environment
   tick
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-204
-27
-643
-487
+398
+26
+837
+486
 16
 16
 13.0
@@ -87,9 +112,9 @@ ticks
 30.0
 
 BUTTON
-20
+8
 33
-86
+74
 66
 NIL
 setup
@@ -104,10 +129,10 @@ NIL
 1
 
 BUTTON
-22
-77
-85
-110
+83
+34
+146
+67
 NIL
 go
 T
@@ -121,10 +146,10 @@ NIL
 1
 
 PLOT
-660
-27
-954
-257
+847
+26
+1141
+256
 Environment
 NIL
 NIL
@@ -139,19 +164,67 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot growth-value"
 
 SLIDER
-22
-124
-194
-157
+9
+81
+181
+114
 growth-sensibility
 growth-sensibility
 0
 1
-0.5
+0
 0.05
 1
 NIL
 HORIZONTAL
+
+SWITCH
+189
+81
+325
+114
+enable-growth
+enable-growth
+0
+1
+-1000
+
+MONITOR
+333
+70
+390
+115
+NIL
+cell-size
+4
+1
+11
+
+SLIDER
+9
+127
+181
+160
+replicative-sensibility
+replicative-sensibility
+0
+0.05
+0
+1
+1
+NIL
+HORIZONTAL
+
+SWITCH
+191
+128
+345
+161
+enable-replicative
+enable-replicative
+1
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
