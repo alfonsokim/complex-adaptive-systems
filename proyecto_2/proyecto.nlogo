@@ -39,7 +39,7 @@ to init-cell [ cell ]
 end
 
 ;; ====================================================================================
-
+;; ------------------------------------------------------------------------------------
 to growth [ cell ]
   let local-cell-size [ size ] of cell
   if [ growth-signal ] of patch-here > [ growth-sensibility ] of cell and local-cell-size < max-size [
@@ -49,7 +49,28 @@ to growth [ cell ]
 end
 
 ;; ====================================================================================
+;; Reproduccion celular
+;; ------------------------------------------------------------------------------------
+to replicate [ cell ]
+  if random-float 1 <= 0.1 [  ;; Mejorar esto, parametrizar o algo
+    let tissue one-of neighbors with [ vessel? and count turtles-here < 10 ]
+    if tissue = nobody and enable-angiogenesis [
+      angiogenesis one-of neighbors with [ not vessel? ]
+    ]
+    ask tissue [ sprout 1 [ init-cell self ] ]
+  ]
+end
 
+;; ====================================================================================
+;; Formacion de vasos
+;; ------------------------------------------------------------------------------------
+to angiogenesis [ tissue ]
+end
+
+;; ====================================================================================
+;; Hasta ahora, el entorno es una funcion que tiene altas y bajas, simulando algunas
+;; hormonas o whateva que sea lo que estimula los procesos del cuerpo.
+;; ------------------------------------------------------------------------------------
 to update-environment 
   ask patches [ set growth-signal sin ticks ]
   set growth-value [ growth-signal ] of patch 0 0
@@ -79,6 +100,7 @@ end
 to go
   ask turtles [ 
     if enable-growth [ growth self ] 
+    if enable-replicative-cap [ replicate self ]
   ]
   update-environment
   tick
@@ -218,10 +240,21 @@ HORIZONTAL
 SWITCH
 191
 128
-345
+387
 161
-enable-replicative
-enable-replicative
+enable-replicative-cap
+enable-replicative-cap
+0
+1
+-1000
+
+SWITCH
+190
+174
+376
+207
+enable-angiogenesis
+enable-angiogenesis
 1
 1
 -1000
