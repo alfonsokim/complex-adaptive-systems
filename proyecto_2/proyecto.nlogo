@@ -13,7 +13,7 @@ to setup
   setup-vessel 0 0 1  ;; Inicializa las venas hacia el extremo superior derecho
   setup-vessel 0 0 -1 ;; Inicializa las venas hacia el extremo inferior izquierdo
   create-turtles 50 [
-    init-cell self
+    init-cell self one-of patches with [ vessel? and count turtles-here < 10 ]
   ]
   reset-ticks
 end
@@ -27,12 +27,11 @@ end
 
 ;; ====================================================================================
 
-to init-cell [ cell ]
+to init-cell [ cell home-patch ]
   set shape "dot"
   set color white
   set size 0.5
   set max-size 3
-  let home-patch one-of patches with [ vessel? and count turtles-here < 10 ]
   setxy [ pxcor ] of home-patch [ pycor ] of home-patch ; tal vez haya una mejor forma de 
                                                         ; colocar las celulas
   set growth-trigger growth-sensibility
@@ -54,10 +53,13 @@ end
 to replicate [ cell ]
   if random-float 1 <= 0.1 [  ;; Mejorar esto, parametrizar o algo
     let tissue one-of neighbors with [ vessel? and count turtles-here < 10 ]
-    if tissue = nobody and enable-angiogenesis [
-      angiogenesis one-of neighbors with [ not vessel? ]
+    if tissue = nobody and enable-angiogenesis and random-float 1 < 0.1 [
+      set tissue one-of neighbors with [ not vessel? ]
+      angiogenesis tissue
     ]
-    ask tissue [ sprout 1 [ init-cell self ] ]
+    if tissue != nobody [
+      ask tissue [ sprout 1 [ init-cell self tissue ] ]
+    ]
   ]
 end
 
@@ -65,6 +67,8 @@ end
 ;; Formacion de vasos
 ;; ------------------------------------------------------------------------------------
 to angiogenesis [ tissue ]
+  set pcolor red 
+  set vessel? true
 end
 
 ;; ====================================================================================
@@ -255,7 +259,7 @@ SWITCH
 207
 enable-angiogenesis
 enable-angiogenesis
-1
+0
 1
 -1000
 
