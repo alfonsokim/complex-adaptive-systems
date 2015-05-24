@@ -1,9 +1,9 @@
 
 ;; ====================================================================================
 
-globals [ growth-value cell-size ] 
-patches-own [ growth-signal vessel? ]
-turtles-own [ growth-trigger max-size ]
+globals [ growth-value cell-size replicative-value] 
+patches-own [ replicative-signal growth-signal vessel? ]
+turtles-own [ growth-trigger replicative-trigger max-size max-bipart partitions malignancy]
 
 ;; ====================================================================================
 
@@ -22,6 +22,7 @@ end
 
 to init-patch [ p ]
   set growth-signal 0
+  set replicative-signal 0
   set vessel? false
 end
 
@@ -32,39 +33,52 @@ to init-cell [ cell home-patch ]
   set color white
   set size 0.5
   set max-size 3
+  set partitions 0
   setxy [ pxcor ] of home-patch [ pycor ] of home-patch ; tal vez haya una mejor forma de 
                                                         ; colocar las celulas
   set growth-trigger growth-sensibility
+  set replicative-trigger replicative-sensibility
+  set max-bipart apoptosis-max-gen
+  set malignancy 0
 end
 
 ;; ====================================================================================
+;; Crecer, comunmente cell crece cuando sobrepasa un umbral growth-trigger
 ;; ------------------------------------------------------------------------------------
 to growth [ cell ]
   let local-cell-size [ size ] of cell
-  if [ growth-signal ] of patch-here > [ growth-sensibility ] of cell and local-cell-size < max-size [
-    set size local-cell-size + 0.005
+  if [ growth-signal ] of patch-here > [ growth-trigger ] of cell and local-cell-size < max-size [
+    set size local-cell-size + 0.05
     set cell-size size ;; Promediar el tamanio de todas las celulas o algo
   ]
 end
 
 ;; ====================================================================================
-;; Reproduccion celular
+;; Reproduccion celular, cuando sobrepasa el umbral replicative-trigger
 ;; ------------------------------------------------------------------------------------
 to replicate [ cell ]
-  if random-float 1 <= 0.1 [  ;; Mejorar esto, parametrizar o algo
+  if [ replicative-signal ] of patch-here > [replicative-trigger] of cell[ 
     let tissue one-of neighbors with [ vessel? and count turtles-here < 10 ]
-    if tissue = nobody and enable-angiogenesis and random-float 1 < 0.1 [
+    if tissue = nobody and enable-angiogenesis and random-float 1 < 0.5 [
       set tissue one-of neighbors with [ not vessel? ]
       angiogenesis tissue
     ]
     if tissue != nobody [
-      ask tissue [ sprout 1 [ init-cell self tissue ] ]
+      ask cell [set partitions partitions + 1]
+      ask tissue [ sprout 1 [ init-cell self tissue 
+          set growth-trigger [growth-trigger] of cell
+          set max-size [max-size] of cell
+          set color [color] of cell
+          set replicative-trigger [replicative-trigger] of cell
+          set max-bipart [max-bipart] of cell
+          set malignancy [malignancy] of cell
+          ] ]
     ]
   ]
 end
 
 ;; ====================================================================================
-;; Formacion de vasos
+;; Formacion de vasos (necesarios para obtener nutrientes)
 ;; ------------------------------------------------------------------------------------
 to angiogenesis [ tissue ]
   set pcolor red 
@@ -72,12 +86,108 @@ to angiogenesis [ tissue ]
 end
 
 ;; ====================================================================================
+;; Apoptosis
+;; Cuenta las veces que se reprodujo y muere despues de las veces establecidad en
+;; apoptosis-max-gen guardado para cada cell en partitions (veces que se bi-partio)
+;; ------------------------------------------------------------------------------------
+to apoptosis [cell]
+  let die? random-float 1
+  if (die? < 0.8 and partitions > max-bipart)[
+    ask cell [die]
+  ]
+end
+
+;; ====================================================================================
+;; Metastasis (una vez maligna poder ir a otro lado a invadir con cierta probabilidad)
+;; malignancy mide el grado de malvadez (por asi llamarlo) de la celula
+;; si se pasa de un umbral puede ir a hacer sus cosas malvadas a otro lado
+;; ------------------------------------------------------------------------------------
+to metastasis [cell]
+  let leave-n-go? random-float 1
+  let tissue one-of patches with [ vessel? ]
+  if (malignancy > 0.66 and leave-n-go? < 0.5)[
+    if tissue != nobody[ 
+      ask cell [setxy [ pxcor ] of tissue [ pycor ] of tissue set color yellow ]
+    ]
+  ]
+end
+
+;; ====================================================================================
+;; Mutacion de celulas (propiciar el cancer cambiando los umbrales de respuesta)
+;; ------------------------------------------------------------------------------------
+to mutate-growth [cell]
+  if random-float 1 < 0.1 and growth-trigger > 0.05 [
+    ask cell[set growth-trigger growth-trigger - 0.05]
+  ]
+end
+
+to mutate-replication [cell]
+  if random-float 1 < 0.1 and replicative-trigger > 0.05 [
+    ask cell[set replicative-trigger replicative-trigger - 0.05]
+  ]
+end
+
+to mutate-apoptosis-max [cell]
+  if random-float 1 < 0.1 [
+    ask cell[set max-bipart max-bipart + 5]
+  ]
+end
+
+to mutate-max-size [cell]
+  if random-float 1 < 0.1 [
+    ask cell[set max-size max-size + 1]
+  ]
+end
+
+;; ====================================================================================
+;; Monitoreo de malignidad, asigna un valor a cada celula
+;; depende del numero de mutaciones que tiene la celula. 
+;; ------------------------------------------------------------------------------------
+to monitoring
+  let total 0
+  if enable-growth [set total total + 1]
+  if enable-replicative-cap [set total total + 1]
+  if enable-apoptosis [set total total + 1]
+  if enable-metastasis [set total total + 1]
+  
+  ask turtles[ let value 0
+    if (growth-trigger != growth-sensibility)[set value value + 1]
+    if (max-size != 3)[set value value + 1]
+    if (replicative-trigger != replicative-sensibility)[set value value + 1]
+    if (max-bipart != apoptosis-max-gen)[set value value + 1]
+    set malignancy value / total color-malignancy
+  ]  
+   
+end
+
+to color-malignancy
+  if malignancy > 0.33 [set color blue]
+end
+
+;; ====================================================================================
+;; Sistema inmunologico (matar celulas malignas)
+;; ------------------------------------------------------------------------------------
+to immunologic-response
+  ask turtles[
+    if (growth-trigger != growth-sensibility or max-size != 3 or replicative-trigger != replicative-sensibility or max-bipart != apoptosis-max-gen)
+      [let die? random-float 1
+      if die? < 0.4[
+        die
+      ]
+    ]
+  ]
+end
+
+;; ====================================================================================
 ;; Hasta ahora, el entorno es una funcion que tiene altas y bajas, simulando algunas
 ;; hormonas o whateva que sea lo que estimula los procesos del cuerpo.
 ;; ------------------------------------------------------------------------------------
 to update-environment 
-  ask patches [ set growth-signal sin ticks ]
+  ask patches [ set growth-signal sin ticks]
   set growth-value [ growth-signal ] of patch 0 0
+  if count turtles < 1000 [ask patches [ set replicative-signal 1]]
+  if count turtles > 2500 [ask patches [ set replicative-signal 0]]
+  set replicative-value [ replicative-signal ] of patch 0 0
 end
 
 
@@ -103,18 +213,22 @@ end
 
 to go
   ask turtles [ 
-    if enable-growth [ growth self ] 
-    if enable-replicative-cap [ replicate self ]
+    if enable-growth [ growth self mutate-growth self mutate-max-size self] 
+    if enable-replicative-cap [ replicate self mutate-replication self]
+    if enable-apoptosis [ apoptosis self mutate-apoptosis-max self]
+    if enable-metastasis [ metastasis self]
   ]
+  monitoring
+  immunologic-response
   update-environment
   tick
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-398
-26
-837
-486
+387
+13
+826
+473
 16
 16
 13.0
@@ -188,6 +302,7 @@ false
 "" ""
 PENS
 "default" 1.0 0 -16777216 true "" "plot growth-value"
+"pen-1" 1.0 0 -7500403 true "" "plot replicative-value"
 
 SLIDER
 9
@@ -198,7 +313,7 @@ growth-sensibility
 growth-sensibility
 0
 1
-0
+0.25
 0.05
 1
 NIL
@@ -207,7 +322,7 @@ HORIZONTAL
 SWITCH
 189
 81
-325
+364
 114
 enable-growth
 enable-growth
@@ -216,10 +331,10 @@ enable-growth
 -1000
 
 MONITOR
-333
+190
+25
+247
 70
-390
-115
 NIL
 cell-size
 4
@@ -234,18 +349,18 @@ SLIDER
 replicative-sensibility
 replicative-sensibility
 0
-0.05
-0
 1
+0.75
+0.05
 1
 NIL
 HORIZONTAL
 
 SWITCH
-191
-128
-387
-161
+190
+124
+363
+157
 enable-replicative-cap
 enable-replicative-cap
 0
@@ -254,14 +369,95 @@ enable-replicative-cap
 
 SWITCH
 190
-174
-376
-207
+166
+364
+199
 enable-angiogenesis
 enable-angiogenesis
 0
 1
 -1000
+
+SLIDER
+10
+166
+182
+199
+apoptosis-max-gen
+apoptosis-max-gen
+0
+10
+7
+1
+1
+NIL
+HORIZONTAL
+
+SWITCH
+191
+205
+364
+238
+enable-apoptosis
+enable-apoptosis
+0
+1
+-1000
+
+SWITCH
+191
+246
+365
+279
+enable-metastasis
+enable-metastasis
+0
+1
+-1000
+
+MONITOR
+12
+209
+94
+254
+CANCER
+count turtles with [color = blue]
+17
+1
+11
+
+MONITOR
+100
+209
+183
+254
+NORMAL
+count turtles with [color = white]
+17
+1
+11
+
+MONITOR
+259
+25
+362
+70
+TOTAL CELLS
+count turtles
+17
+1
+11
+
+MONITOR
+12
+261
+94
+306
+Metastasis
+count turtles with [color = yellow]
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
