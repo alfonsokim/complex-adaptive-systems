@@ -116,20 +116,20 @@ end
 ;; Mutacion de celulas (propiciar el cancer cambiando los umbrales de respuesta)
 ;; ------------------------------------------------------------------------------------
 to mutate-growth [cell]
-  if random-float 1 < 0.1 and growth-trigger > 0.05 [
-    ask cell[set growth-trigger growth-trigger - 0.05]
+  if random-float 1 < 0.1 and growth-trigger > 0.1 [
+    ask cell[set growth-trigger growth-trigger - 0.1]
   ]
 end
 
 to mutate-replication [cell]
-  if random-float 1 < 0.1 and replicative-trigger > 0.05 [
-    ask cell[set replicative-trigger replicative-trigger - 0.05]
+  if random-float 1 < 0.1 and replicative-trigger > 0.1 [
+    ask cell[set replicative-trigger replicative-trigger - 0.1]
   ]
 end
 
 to mutate-apoptosis-max [cell]
   if random-float 1 < 0.1 [
-    ask cell[set max-bipart max-bipart + 5]
+    ask cell[set max-bipart max-bipart + 10]
   ]
 end
 
@@ -291,8 +291,8 @@ PLOT
 1141
 256
 Environment
-NIL
-NIL
+t
+no cells
 0.0
 100.0
 -1.0
@@ -301,8 +301,9 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot growth-value"
-"pen-1" 1.0 0 -7500403 true "" "plot replicative-value"
+"pen-0" 1.0 0 -16777216 true "" "plot count turtles with [color = white]"
+"pen-1" 1.0 0 -14070903 true "" "plot count turtles with [color = blue]"
+"pen-2" 1.0 0 -955883 true "" "plot count turtles with [color = yellow]"
 
 SLIDER
 9
