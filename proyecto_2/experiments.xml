@@ -2,38 +2,51 @@
 <!DOCTYPE experiments SYSTEM "behaviorspace.dtd">
 
 <experiments>
-  <experiment name="experiment" repetitions="10" runMetricsEveryStep="false">
-    <setup>setup</setup>
-    <go>go</go>
-    <!-- <metric>num-standing</metric> -->
+    <!-- El numero de repeticiones es cuantas veces ejecuta setup/go
+         por cada repeticion escribe los mismos parametros en el
+         csv de salida.
+    -->
+    <experiment name="experiment" repetitions="10" runMetricsEveryStep="false">
+      <setup>setup</setup>
+      <go>go</go>
+      <!-- <metric>num-standing</metric> -->
 
-    <enumeratedValueSet variable="num-iterations">
-        <value value="10"/>
-    </enumeratedValueSet>
+      <!-- El numero de iteraciones son los ticks que da cada ejecucion,
+           lo tengo en un valor pequenio (10) solo para probar, hay que
+           incrementarlo a 100 o a 1000
+      -->
+      <enumeratedValueSet variable="num-iterations">
+          <value value="10"/>
+      </enumeratedValueSet>
 
-    <steppedValueSet variable="growth-sensibility" first="0.1" step="0.2" last="0.9"/>
-    <steppedValueSet variable="replicative-sensibility" first="0.1" step="0.2" last="0.9"/>
-    <steppedValueSet variable="apoptosis-max-gen" first="0.1" step="0.2" last="0.9"/>
+      <!-- Los sliders se parametrizan empezando en 0.1 y hasta 0.9 cada 0.2
+           En el archivo de salida se ven las combinaciones de cada valor
+      -->
+      <steppedValueSet variable="growth-sensibility" first="0.1" step="0.2" last="0.9"/>
+      <steppedValueSet variable="replicative-sensibility" first="0.1" step="0.2" last="0.9"/>
+      <steppedValueSet variable="apoptosis-max-gen" first="0.1" step="0.2" last="0.9"/>
 
-    <enumeratedValueSet variable="enable-growth">
-      <value value="true"/>
-      <value value="false"/>
-    </enumeratedValueSet>
+      <!-- Igual, prender y apagar las mutaciones 
+      -->
+      <enumeratedValueSet variable="enable-growth">
+          <value value="true"/>
+          <value value="false"/>
+      </enumeratedValueSet>
 
-    <enumeratedValueSet variable="enable-replicative-cap">
-      <value value="true"/>
-      <value value="false"/>
-    </enumeratedValueSet>
+      <enumeratedValueSet variable="enable-replicative-cap">
+        <value value="true"/>
+        <value value="false"/>
+      </enumeratedValueSet>
 
-    <enumeratedValueSet variable="enable-apoptosis">
-      <value value="true"/>
-      <value value="false"/>
-    </enumeratedValueSet>
+      <enumeratedValueSet variable="enable-apoptosis">
+          <value value="true"/>
+          <value value="false"/>
+      </enumeratedValueSet>
 
-    <enumeratedValueSet variable="enable-metastasis">
-      <value value="true"/>
-      <value value="false"/>
-    </enumeratedValueSet>
+      <enumeratedValueSet variable="enable-metastasis">
+          <value value="true"/>
+          <value value="false"/>
+      </enumeratedValueSet>
 
-  </experiment>
+    </experiment>
 </experiments>
