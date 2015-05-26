@@ -1,10 +1,10 @@
 
 ;; ====================================================================================
-;; Alfonso Kim, Luis E. Pérez, Karen L. Poblete
-;; Maestría en Ciencias en Computación
-;; Sistemas Complejos Adaptativos
-;; Instituto Tecnológico Autónomo de México
-28 de mayo de 2015
+;;                    ---------- Sistemas Complejos Adaptativos ----------
+;;                          Alfonso Kim, Luis E. Pérez, Karen L. Poblete
+;;                              Maestría en Ciencias en Computación
+;;                            Instituto Tecnológico Autónomo de México
+;;                                     28 de mayo de 2015
 ;; ====================================================================================
 
 ;; ====================================================================================
