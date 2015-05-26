@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<!DOCTYPE experiments SYSTEM "behaviorspace.dtd">
+
+<experiments>
+  <experiment name="experiment" repetitions="10" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <!-- <metric>num-standing</metric> -->
+
+    <enumeratedValueSet variable="num-iterations">
+        <value value="10"/>
+    </enumeratedValueSet>
+
+    <steppedValueSet variable="growth-sensibility" first="0.1" step="0.2" last="0.9"/>
+    <steppedValueSet variable="replicative-sensibility" first="0.1" step="0.2" last="0.9"/>
+    <steppedValueSet variable="apoptosis-max-gen" first="0.1" step="0.2" last="0.9"/>
+
+    <enumeratedValueSet variable="enable-growth">
+      <value value="true"/>
+      <value value="false"/>
+    </enumeratedValueSet>
+
+    <enumeratedValueSet variable="enable-replicative-cap">
+      <value value="true"/>
+      <value value="false"/>
+    </enumeratedValueSet>
+
+    <enumeratedValueSet variable="enable-apoptosis">
+      <value value="true"/>
+      <value value="false"/>
+    </enumeratedValueSet>
+
+    <enumeratedValueSet variable="enable-metastasis">
+      <value value="true"/>
+      <value value="false"/>
+    </enumeratedValueSet>
+
+  </experiment>
+</experiments>

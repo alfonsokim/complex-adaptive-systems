@@ -1,9 +1,28 @@
 
 ;; ====================================================================================
+;; Alfonso Kim, Luis E. Pérez, Karen L. Poblete
+;; Maestría en Ciencias en Computación
+;; Sistemas Complejos Adaptativos
+;; Instituto Tecnológico Autónomo de México
+28 de mayo de 2015
+;; ====================================================================================
 
-globals [ growth-value cell-size replicative-value] 
-patches-own [ replicative-signal growth-signal vessel? ]
-turtles-own [ growth-trigger replicative-trigger max-size max-bipart partitions malignancy]
+;; ====================================================================================
+
+globals [ growth-value              ;; Indice de crecimiento del sistema
+          cell-size                 ;; Promedio del tamanio de las celulas
+          replicative-value         ;; 
+] 
+patches-own [ replicative-signal    ;; 
+              growth-signal 
+              vessel?               ;; Indica si el patch es un vaso
+]
+turtles-own [ growth-trigger        ;; 
+              replicative-trigger   ;;
+              max-size max-bipart   ;;
+              partitions            ;;
+              malignancy            ;; Indice de malignidad de la celula
+]
 
 ;; ====================================================================================
 
@@ -15,6 +34,7 @@ to setup
   create-turtles 50 [
     init-cell self one-of patches with [ vessel? and count turtles-here < 10 ]
   ]
+  file-open "cancer.csv"    ;; Archivo con los contadores de salida
   reset-ticks
 end
 
@@ -49,7 +69,6 @@ to growth [ cell ]
   let local-cell-size [ size ] of cell
   if [ growth-signal ] of patch-here > [ growth-trigger ] of cell and local-cell-size < max-size [
     set size local-cell-size + 0.05
-    set cell-size size ;; Promediar el tamanio de todas las celulas o algo
   ]
 end
 
@@ -93,7 +112,7 @@ end
 to apoptosis [cell]
   let die? random-float 1
   if (die? < 0.8 and partitions > max-bipart)[
-    ask cell [die]
+    ask cell [ die ]
   ]
 end
 
@@ -107,7 +126,7 @@ to metastasis [cell]
   let tissue one-of patches with [ vessel? ]
   if (malignancy > 0.66 and leave-n-go? < 0.5)[
     if tissue != nobody[ 
-      ask cell [setxy [ pxcor ] of tissue [ pycor ] of tissue set color yellow ]
+      ask cell [ setxy [ pxcor ] of tissue [ pycor ] of tissue set color yellow ]
     ]
   ]
 end
@@ -117,25 +136,31 @@ end
 ;; ------------------------------------------------------------------------------------
 to mutate-growth [cell]
   if random-float 1 < 0.1 and growth-trigger > 0.1 [
-    ask cell[set growth-trigger growth-trigger - 0.1]
+    ask cell[ set growth-trigger growth-trigger - 0.1 ]
   ]
 end
 
-to mutate-replication [cell]
+;; ====================================================================================
+
+to mutate-replication [ cell ]
   if random-float 1 < 0.1 and replicative-trigger > 0.1 [
-    ask cell[set replicative-trigger replicative-trigger - 0.1]
+    ask cell[ set replicative-trigger replicative-trigger - 0.1 ]
   ]
 end
 
-to mutate-apoptosis-max [cell]
+;; ====================================================================================
+
+to mutate-apoptosis-max [ cell ]
   if random-float 1 < 0.1 [
-    ask cell[set max-bipart max-bipart + 10]
+    ask cell[ set max-bipart max-bipart + 10 ]
   ]
 end
 
-to mutate-max-size [cell]
+;; ====================================================================================
+
+to mutate-max-size [ cell ]
   if random-float 1 < 0.1 [
-    ask cell[set max-size max-size + 1]
+    ask cell[ set max-size max-size + 1 ]
   ]
 end
 
@@ -155,10 +180,39 @@ to monitoring
     if (max-size != 3)[set value value + 1]
     if (replicative-trigger != replicative-sensibility)[set value value + 1]
     if (max-bipart != apoptosis-max-gen)[set value value + 1]
-    set malignancy value / total color-malignancy
+    ifelse total != 0 [ set malignancy value / total ] [ set malignancy 0 ] 
+    color-malignancy
   ]  
    
 end
+
+;; ==========================================================
+;; Imprime a archivo las estadisticas
+;; Imprime un CSV con formato
+;; ----------------------------------------------------------
+to print-stats
+  let cancer count turtles with [ color = blue ]
+  let normal count turtles with [ color = white ]
+  let metastasis-count count turtles with [ color = yellow ]
+  ;; WTF!!!! La ejecucion headless me dice que aveces count turtles = 0!!!
+  ifelse count turtles != 0 [ set cell-size sum [ size ] of turtles / count turtles ][ set cell-size 0 ]
+  let stat ( word enable-growth "," enable-replicative-cap "," enable-apoptosis "," 
+    enable-metastasis "," growth-sensibility "," replicative-sensibility "," 
+    apoptosis-max-gen "," cell-size "," cancer "," normal "," metastasis-count )
+  file-print stat
+end
+
+;; ====================================================================================
+;; 
+to print-header
+  if not file-exists? "cancer.csv" [
+    file-print ( word "enable-growth,enable-replicative-cap,enable-apoptosis,"
+                      "enable-metastasis,growth-sensibility,replicative-sensibility,"
+                      "apoptosis-max-gen,cell-size,cancer,normal,metastasis-count" )
+  ]
+end
+
+;; ====================================================================================
 
 to color-malignancy
   if malignancy > 0.33 [set color blue]
@@ -169,11 +223,12 @@ end
 ;; ------------------------------------------------------------------------------------
 to immunologic-response
   ask turtles[
-    if (growth-trigger != growth-sensibility or max-size != 3 or replicative-trigger != replicative-sensibility or max-bipart != apoptosis-max-gen)
-      [let die? random-float 1
-      if die? < 0.4[
-        die
-      ]
+    if ( growth-trigger != growth-sensibility or 
+         max-size != 3 or 
+         replicative-trigger != replicative-sensibility or 
+         max-bipart != apoptosis-max-gen ) [
+      let die? random-float 1
+      if die? < 0.4 [ die ]
     ]
   ]
 end
@@ -209,19 +264,21 @@ to setup-vessel [ x y direction ]
   ]
 end
 
-;; ====================================================================================
-
+;; ===================================================================================
+;; -----------------------------------------------------------------------------------
 to go
   ask turtles [ 
-    if enable-growth [ growth self mutate-growth self mutate-max-size self] 
-    if enable-replicative-cap [ replicate self mutate-replication self]
-    if enable-apoptosis [ apoptosis self mutate-apoptosis-max self]
-    if enable-metastasis [ metastasis self]
+    if enable-growth [ growth self mutate-growth self mutate-max-size self ] 
+    if enable-replicative-cap [ replicate self mutate-replication self ]
+    if enable-apoptosis [ apoptosis self mutate-apoptosis-max self ]
+    if enable-metastasis [ metastasis self ]
   ]
   monitoring
   immunologic-response
   update-environment
+  ;; print-header
   tick
+  if ticks >= num-iterations or ticks >= 10000 [ print-stats file-close-all stop ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -286,10 +343,10 @@ NIL
 1
 
 PLOT
-847
-26
-1141
-256
+841
+14
+1135
+244
 Environment
 t
 no cells
@@ -307,9 +364,9 @@ PENS
 
 SLIDER
 9
-81
+141
 181
-114
+174
 growth-sensibility
 growth-sensibility
 0
@@ -344,9 +401,9 @@ cell-size
 
 SLIDER
 9
-127
+187
 181
-160
+220
 replicative-sensibility
 replicative-sensibility
 0
@@ -381,9 +438,9 @@ enable-angiogenesis
 
 SLIDER
 10
-166
+226
 182
-199
+259
 apoptosis-max-gen
 apoptosis-max-gen
 0
@@ -418,9 +475,9 @@ enable-metastasis
 
 MONITOR
 12
-209
+269
 94
-254
+314
 CANCER
 count turtles with [color = blue]
 17
@@ -429,9 +486,9 @@ count turtles with [color = blue]
 
 MONITOR
 100
-209
+269
 183
-254
+314
 NORMAL
 count turtles with [color = white]
 17
@@ -451,14 +508,25 @@ count turtles
 
 MONITOR
 12
-261
+321
 94
-306
+366
 Metastasis
 count turtles with [color = yellow]
 17
 1
 11
+
+INPUTBOX
+9
+77
+164
+137
+num-iterations
+100
+1
+0
+Number
 
 @#$#@#$#@
 ## WHAT IS IT?
