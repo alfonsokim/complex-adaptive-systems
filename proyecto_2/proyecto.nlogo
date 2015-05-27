@@ -22,6 +22,7 @@ turtles-own [ growth-trigger        ;;
               max-size max-bipart   ;;
               partitions            ;;
               malignancy            ;; Indice de malignidad de la celula
+              metastasis?           ;; si han hecho metastasis
 ]
 
 ;; ====================================================================================
@@ -60,6 +61,7 @@ to init-cell [ cell home-patch ]
   set replicative-trigger replicative-sensibility
   set max-bipart apoptosis-max-gen
   set malignancy 0
+  set metastasis? false
 end
 
 ;; ====================================================================================
@@ -68,7 +70,7 @@ end
 to growth [ cell ]
   let local-cell-size [ size ] of cell
   if [ growth-signal ] of patch-here > [ growth-trigger ] of cell and local-cell-size < max-size [
-    set size local-cell-size + 0.05
+    set size local-cell-size + 0.1
   ]
 end
 
@@ -77,12 +79,8 @@ end
 ;; ------------------------------------------------------------------------------------
 to replicate [ cell ]
   if [ replicative-signal ] of patch-here > [replicative-trigger] of cell[ 
-    let tissue one-of neighbors with [ vessel? and count turtles-here < 10 ]
-    if tissue = nobody and enable-angiogenesis and random-float 1 < 0.5 [
-      set tissue one-of neighbors with [ not vessel? ]
-      angiogenesis tissue
-    ]
-    if tissue != nobody [
+    let tissue one-of neighbors with [ count turtles-here < 10 ]
+    if tissue != nobody and random-float 1 < 0.5 [
       ask cell [set partitions partitions + 1]
       ask tissue [ sprout 1 [ init-cell self tissue 
           set growth-trigger [growth-trigger] of cell
@@ -97,11 +95,13 @@ to replicate [ cell ]
 end
 
 ;; ====================================================================================
-;; Formacion de vasos (necesarios para obtener nutrientes)
+;; Creación de vasos sanguineos (necesarios para obtener nutrientes)
 ;; ------------------------------------------------------------------------------------
-to angiogenesis [ tissue ]
-  set pcolor red 
-  set vessel? true
+to angiogenesis [cell]
+  let tissue one-of neighbors with [ vessel? = false]
+  if tissue != nobody and [malignancy] of cell > 0.77 and [size] of cell > 1.5 and random-float 1 < 0.3 [
+    ask tissue [set pcolor red set vessel? true]
+    ]
 end
 
 ;; ====================================================================================
@@ -111,7 +111,7 @@ end
 ;; ------------------------------------------------------------------------------------
 to apoptosis [cell]
   let die? random-float 1
-  if (die? < 0.8 and partitions > max-bipart)[
+  if (die? < 0.7 and partitions > max-bipart and malignancy = 0)[
     ask cell [ die ]
   ]
 end
@@ -124,9 +124,9 @@ end
 to metastasis [cell]
   let leave-n-go? random-float 1
   let tissue one-of patches with [ vessel? ]
-  if (malignancy > 0.66 and leave-n-go? < 0.5)[
+  if (malignancy > 0.77 and leave-n-go? < 0.3)[
     if tissue != nobody[ 
-      ask cell [ setxy [ pxcor ] of tissue [ pycor ] of tissue set color yellow ]
+      ask cell [ setxy [ pxcor ] of tissue [ pycor ] of tissue set color green set metastasis? true]
     ]
   ]
 end
@@ -136,7 +136,7 @@ end
 ;; ------------------------------------------------------------------------------------
 to mutate-growth [cell]
   if random-float 1 < 0.1 and growth-trigger > 0.1 [
-    ask cell[ set growth-trigger growth-trigger - 0.1 ]
+    ask cell[ set growth-trigger growth-trigger - 0.2 ]
   ]
 end
 
@@ -193,7 +193,7 @@ end
 to print-stats
   let cancer count turtles with [ color = blue ]
   let normal count turtles with [ color = white ]
-  let metastasis-count count turtles with [ color = yellow ]
+  let metastasis-count count turtles with [ color = green ]
   ;; WTF!!!! La ejecucion headless me dice que aveces count turtles = 0!!!
   ifelse count turtles != 0 [ set cell-size sum [ size ] of turtles / count turtles ][ set cell-size 0 ]
   let stat ( word enable-growth "," enable-replicative-cap "," enable-apoptosis "," 
@@ -215,7 +215,7 @@ end
 ;; ====================================================================================
 
 to color-malignancy
-  if malignancy > 0.33 [set color blue]
+  if malignancy > 0.33 and metastasis? = false [set color blue]
 end
 
 ;; ====================================================================================
@@ -238,7 +238,7 @@ end
 ;; hormonas o whateva que sea lo que estimula los procesos del cuerpo.
 ;; ------------------------------------------------------------------------------------
 to update-environment 
-  ask patches [ set growth-signal sin ticks]
+  ask patches [ set growth-signal 1]
   set growth-value [ growth-signal ] of patch 0 0
   if count turtles < 1000 [ask patches [ set replicative-signal 1]]
   if count turtles > 2500 [ask patches [ set replicative-signal 0]]
@@ -271,6 +271,7 @@ to go
     if enable-growth [ growth self mutate-growth self mutate-max-size self ] 
     if enable-replicative-cap [ replicate self mutate-replication self ]
     if enable-apoptosis [ apoptosis self mutate-apoptosis-max self ]
+    if enable-angiogenesis [angiogenesis self]
     if enable-metastasis [ metastasis self ]
   ]
   monitoring
@@ -360,7 +361,7 @@ false
 PENS
 "pen-0" 1.0 0 -16777216 true "" "plot count turtles with [color = white]"
 "pen-1" 1.0 0 -14070903 true "" "plot count turtles with [color = blue]"
-"pen-2" 1.0 0 -955883 true "" "plot count turtles with [color = yellow]"
+"pen-2" 1.0 0 -955883 true "" "plot count turtles with [color = green]"
 
 SLIDER
 9
@@ -371,7 +372,7 @@ growth-sensibility
 growth-sensibility
 0
 1
-0.25
+0.4
 0.05
 1
 NIL
@@ -512,7 +513,7 @@ MONITOR
 94
 366
 Metastasis
-count turtles with [color = yellow]
+count turtles with [color = green]
 17
 1
 11
@@ -523,7 +524,7 @@ INPUTBOX
 164
 137
 num-iterations
-100
+3000
 1
 0
 Number
