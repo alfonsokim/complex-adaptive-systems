@@ -1,0 +1,182 @@
+create table cas (
+    enable_growth boolean,
+    enable_replicative_cap boolean,
+    enable_apoptosis boolean,
+    enable_metastasis boolean,
+    growth_sensibility double precision,
+    replicative_sensibility double precision,
+    apoptosis_max_gen double precision,
+    cell_size double precision,
+    cancer double precision,
+    normal double precision,
+    metastasis_count double precision
+);
+
+\copy cas from '/Users/Alfonso/Dropbox/MCC/SCA/Proyecto/modelo/cancer_long.csv' with header csv delimiter ',';
+
+select
+enable_growth, enable_replicative_cap, enable_apoptosis, enable_metastasis, growth_sensibility, replicative_sensibility, apoptosis_max_gen, 
+min(cell_size) as min_cell_size, max(cell_size) as max_cell_size, 
+avg(cell_size) as avg_cell_size, stddev(cell_size) as std_cell_size, 
+min(cancer) as min_cancer, max(cancer) as max_cancer, 
+avg(cancer) as avg_cancer, stddev(cancer) as std_cancer, 
+min(normal) as min_normal, max(normal) as max_normal, 
+avg(normal) as avg_normal, stddev(normal) as std_normal,
+min(metastasis_count) as min_metastasis_count, max(metastasis_count) as max_metastasis_count, 
+avg(metastasis_count) as avg_metastasis_count, stddev(metastasis_count) as std_metastasis_count,
+count(*) as total
+into cas_resumen
+from cas group by 1, 2, 3, 4, 5, 6, 7;
+
+
+select growth_sensibility, replicative_sensibility, apoptosis_max_gen, avg_cancer as cancer
+from cas_resumen
+where enable_growth = true and 
+  enable_replicative_cap = true and
+  enable_apoptosis = true and
+  enable_metastasis = true;
+
+
+
+select enable_growth, enable_replicative_cap, enable_apoptosis, enable_metastasis, count(*)
+from cas_resumen
+where avg_cancer <> 0
+group by 1, 2, 3, 4;
+
+
+   enable_growth | enable_replicative_cap | enable_apoptosis | enable_metastasis | count 
+  ---------------+------------------------+------------------+-------------------+-------
+1  f             | t                      | f                | f                 |    79
+2  f             | t                      | t                | f                 |    20
+3  t             | t                      | f                | t                 |   100
+4  f             | t                      | f                | t                 |    79
+5  f             | t                      | t                | t                 |    20
+6  t             | t                      | f                | f                 |    99
+(6 rows)
+
+=== Caso 1:
+select growth_sensibility, replicative_sensibility, apoptosis_max_gen, 
+       avg_cell_size, avg_cancer, avg_metastasis_count 
+from cas_resumen
+where enable_growth = false and enable_replicative_cap = true and 
+      enable_apoptosis = false and enable_metastasis = false
+
+\copy (select growth_sensibility, replicative_sensibility, apoptosis_max_gen, avg_cell_size, avg_cancer, avg_metastasis_count from cas_resumen where enable_growth = false and enable_replicative_cap = true and enable_apoptosis = false and enable_metastasis = false) to '/Users/Alfonso/Dropbox/MCC/SCA/Proyecto/modelo/caso_1.csv' with header csv delimiter ',';
+
+
+
+=== Caso 2:
+select growth_sensibility, replicative_sensibility, apoptosis_max_gen, 
+       avg_cell_size, avg_cancer, avg_metastasis_count 
+from cas_resumen
+where enable_growth = false and enable_replicative_cap = true and 
+      enable_apoptosis = true and enable_metastasis = false
+
+\copy (select growth_sensibility, replicative_sensibility, apoptosis_max_gen, avg_cell_size, avg_cancer, avg_metastasis_count from cas_resumen where enable_growth = false and enable_replicative_cap = true and enable_apoptosis = true and enable_metastasis = false) to '/Users/Alfonso/Dropbox/MCC/SCA/Proyecto/modelo/caso_2.csv' with header csv delimiter ',';
+
+
+=== Caso 3:
+select growth_sensibility, replicative_sensibility, apoptosis_max_gen, avg_cell_size, avg_cancer, avg_metastasis_count from cas_resumen where enable_growth = true and enable_replicative_cap = true and enable_apoptosis = false and enable_metastasis = true
+
+\copy (select growth_sensibility, replicative_sensibility, apoptosis_max_gen, avg_cell_size, avg_cancer, avg_metastasis_count from cas_resumen where enable_growth = true and enable_replicative_cap = true and enable_apoptosis = false and enable_metastasis = true) to '/Users/Alfonso/Dropbox/MCC/SCA/Proyecto/modelo/caso_3.csv' with header csv delimiter ',';
+
+
+
+=== Caso 4: 4  f             | t                      | f                | t                 |    79
+select growth_sensibility, replicative_sensibility, apoptosis_max_gen, 
+avg_cell_size, avg_cancer, avg_metastasis_count 
+from cas_resumen 
+where enable_growth = false and enable_replicative_cap = true and 
+enable_apoptosis = false and enable_metastasis = true
+
+\copy (select growth_sensibility, replicative_sensibility, apoptosis_max_gen, avg_cell_size, avg_cancer, avg_metastasis_count from cas_resumen where enable_growth = false and enable_replicative_cap = true and enable_apoptosis = false and enable_metastasis = true) to '/Users/Alfonso/Dropbox/MCC/SCA/Proyecto/modelo/caso_4.csv' with header csv delimiter ',';
+
+
+
+=== Caso 5  f             | t                      | t                | t                 |    20
+select growth_sensibility, replicative_sensibility, apoptosis_max_gen, 
+avg_cell_size, avg_cancer, avg_metastasis_count 
+from cas_resumen 
+where enable_growth = false and enable_replicative_cap = true and 
+enable_apoptosis = true and enable_metastasis = true
+
+\copy (select growth_sensibility, replicative_sensibility, apoptosis_max_gen, avg_cell_size, avg_cancer, avg_metastasis_count from cas_resumen where enable_growth = false and enable_replicative_cap = true and enable_apoptosis = true and enable_metastasis = true) to '/Users/Alfonso/Dropbox/MCC/SCA/Proyecto/modelo/caso_5.csv' with header csv delimiter ',';
+
+
+
+
+=== Caso 6  t             | t                      | f                | f                 |    99
+select growth_sensibility, replicative_sensibility, apoptosis_max_gen, 
+avg_cell_size, avg_cancer, avg_metastasis_count 
+from cas_resumen 
+where enable_growth = true and enable_replicative_cap = true and 
+enable_apoptosis = false and enable_metastasis = false
+
+\copy (select growth_sensibility, replicative_sensibility, apoptosis_max_gen, avg_cell_size, avg_cancer, avg_metastasis_count from cas_resumen where enable_growth = true and enable_replicative_cap = true and enable_apoptosis = false and enable_metastasis = false) to '/Users/Alfonso/Dropbox/MCC/SCA/Proyecto/modelo/caso_6.csv' with header csv delimiter ',';
+
+
+alter table cas_resumen add id_cas serial not null primary key;
+
+select enable_growth, enable_replicative_cap, enable_apoptosis, enable_metastasis, max(avg_cancer)
+from cas_resumen
+where avg_cancer <> 0
+group by enable_growth, enable_replicative_cap, enable_apoptosis, enable_metastasis
+
+with categorias as (
+select enable_growth, enable_replicative_cap, enable_apoptosis, enable_metastasis, max(avg_cancer) as max_cancer
+from cas_resumen
+where avg_cancer <> 0
+group by enable_growth, enable_replicative_cap, enable_apoptosis, enable_metastasis
+) select a.enable_growth, a.enable_replicative_cap, a.enable_apoptosis, a.enable_metastasis,
+  a.growth_sensibility, a.replicative_sensibility, a.apoptosis_max_gen, b.max_cancer
+from cas_resumen a, categorias b
+where a.enable_growth = b.enable_growth and a.enable_replicative_cap = b.enable_replicative_cap and
+      a.enable_apoptosis = b.enable_apoptosis and a.enable_metastasis = b.enable_metastasis and
+      a.avg_cancer = b.max_cancer;
+
+
+
+ enable_growth | enable_replicative_cap | enable_apoptosis | enable_metastasis | growth_sensibility | replicative_sensibility | apoptosis_max_gen | max_cancer 
+---------------+------------------------+------------------+-------------------+--------------------+-------------------------+-------------------+------------
+ f  | t  | f                | f                 |                0.3 |                     0.7 |               0.9 |     299.02
+ f  | t  | f                | t                 |                0.5 |                     0.7 |               0.7 |     301.04
+ f  | t  | t                | f                 |                0.7 |                     0.1 |               0.5 |     362.88
+ f  | t  | t                | t                 |                0.5 |                     0.1 |               0.5 |     345.06
+ t  | t  | f                | f                 |                0.7 |                     0.7 |               0.3 |     861.16
+ t  | t  | f                | t                 |                0.7 |                     0.3 |               0.7 |      812.8
+
+create table casos (
+    caso_1 integer,
+    caso_2 integer,
+    caso_3 integer,
+    caso_4 integer,
+    caso_5 integer,
+    caso_6 integer
+);
+
+
+
+select cancer as caso_1
+from cas
+where enable_growth = false and enable_replicative_cap = true
+and enable_apoptosis = false and enable_metastasis = false
+and growth_sensibility = 0.3 and replicative_sensibility = 0.7 and apoptosis_max_gen = 0.9;
+
+with caso as (
+select cancer as caso_2
+from cas
+where enable_growth = false and enable_replicative_cap = true
+and enable_apoptosis = false and enable_metastasis = true
+and growth_sensibility = 0.5 and replicative_sensibility = 0.7 and apoptosis_max_gen = 0.7
+)
+update casos set caso_2 = caso.caso_2
+from caso
+
+
+
+alter table casos add caso_2 integer;
+alter table casos add caso_3 integer;
+alter table casos add caso_4 integer;
+alter table casos add caso_5 integer;
+alter table casos add caso_6 integer;
+
